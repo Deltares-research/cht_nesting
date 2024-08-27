@@ -13,8 +13,8 @@ import xarray as xr
 import numpy as np
 import glob
 import datetime 
-from cht.misc.deltares_ini import IniStruct
-from cht.tide.tide_predict import predict
+from cht_utils.deltares_ini import IniStruct
+from cht_tide.tide_predict import predict
 
 def nest2(overall,
           detail,

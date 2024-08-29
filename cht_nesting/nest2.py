@@ -36,19 +36,19 @@ def nest2(overall,
     if type(overall) == str:
         overall_str = overall
         if overall == "sfincs":
-            from cht.sfincs.sfincs import SFINCS
+            from cht_sfincs.sfincs import SFINCS
             overall = SFINCS()
         elif overall == "hurrywave":
-            from cht.hurrywave.hurrywave import HurryWave
+            from cht_hurrywave.hurrywave import HurryWave
             overall = HurryWave()
         elif overall == "xbeach":
-            from cht.xbeach.xbeach import XBeach
+            from cht_xbeach.xbeach import XBeach
             overall = XBeach()
         elif overall == "beware":
-            from cht.beware.beware import BEWARE
+            from cht_beware.beware import BEWARE
             overall = BEWARE()
         elif overall == "delft3dfm":
-            from cht.delft3dfm.delft3dfm import Delft3DFM
+            from cht_delft3dfm.delft3dfm import Delft3DFM
             overall = Delft3DFM()           
         overall.type = overall_str
 
@@ -529,7 +529,7 @@ def nest2_xbeach_in_hurrywave(overall,
                               return_maximum=False,
                               bc_path=None):
     
-    from cht.physics.deshoal import deshoal
+    from cht_physics.deshoal import deshoal
     from scipy import interpolate
     if not output_path:
         # Path of the overall output time series
@@ -808,8 +808,8 @@ def nest2_sfincs_in_beware(overall,
                            option=None,
                            bc_path=None):
 
-    from cht.sfincs.sfincs import FlowBoundaryPoint
-    from cht.sfincs.sfincs import WaveMakerForcingPoint
+    from cht_sfincs.sfincs import FlowBoundaryPoint
+    from cht_sfincs.sfincs import WaveMakerForcingPoint
 
     if not output_file:
         output_file = "beware_his.nc"

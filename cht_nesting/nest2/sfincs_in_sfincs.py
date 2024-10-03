@@ -48,7 +48,7 @@ def sfincs_in_sfincs(overall,
     zstfile = os.path.join(output_path, output_file)
 
     # Return DataFrame bzs
-    bzs = overall.read_his_file(station=point_names,
+    bzs = overall.output.read_his_file(station=point_names,
                                 parameter="zs",
                                 file_name=zstfile)
     ts  = bzs.index
@@ -57,15 +57,15 @@ def sfincs_in_sfincs(overall,
     if filter_incoming:
 
         # Read velocities
-        bzu = overall.read_his_file(station=point_names,
+        bzu = overall.output.read_his_file(station=point_names,
                                     parameter="point_u",
                                     file_name=zstfile)
-        bzv = overall.read_his_file(station=point_names,
+        bzv = overall.output.read_his_file(station=point_names,
                                     parameter="point_v",
                                     file_name=zstfile)
 
         # Read bed levels
-        bzb = overall.read_his_file(station=point_names,
+        bzb = overall.output.read_his_file(station=point_names,
                                     parameter="zb",
                                     file_name=zstfile)
 

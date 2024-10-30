@@ -19,9 +19,10 @@ from cht_physics.waves import split_waves_guza
 
 def sfincs_in_sfincs(overall,
                      detail,
+                     obs_point_prefix=None,
                      output_path=None,
                      output_file=None,
-                     boundary_water_level_correction=0,
+                     boundary_water_level_correction=0.0,
                      return_maximum=False,
                      filter_incoming=False,
                      bctype="waterlevel",
@@ -30,6 +31,10 @@ def sfincs_in_sfincs(overall,
     if not output_path:
         # Path of the overall output time series
         output_path = overall.path
+
+    if not obs_point_prefix:
+        # Name of obs points
+        obs_point_prefix = detail.name    
         
     if overall.input.variables.outputformat[0:3] == "bin":
         # ascii output        
@@ -44,7 +49,7 @@ def sfincs_in_sfincs(overall,
     # Loop through gdf of boundary conditions
     for ind, point in detail.boundary_conditions.gdf.iterrows():
     # for point in detail.flow_boundary_point:
-        point_names.append(detail.name + "_" + point["name"])                    
+        point_names.append(obs_point_prefix + "_" + point["name"])                    
     zstfile = os.path.join(output_path, output_file)
 
     # Return DataFrame bzs

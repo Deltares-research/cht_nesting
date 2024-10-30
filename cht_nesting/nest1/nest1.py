@@ -14,40 +14,65 @@ import numpy as np
 import glob
 import datetime 
 
-def nest1(overall, detail, option=None):
+def nest1(overall, detail, option=None, obs_point_prefix=None):
     
     # Returns a list with observation point objects
-    
-    if overall.type.lower() == "delft3dfm":
-        if detail.type.lower() == "delft3dfm":
+
+    # Check if detail model has attribute name
+    if obs_point_prefix is not None:
+        if not hasattr(detail, "name"):
+            detail.name = "nest"
+    else:
+        detail.name = obs_point_prefix       
+
+    # Get the types of overall and detail classes
+    overall_type = overall.__class__.__name__.lower()
+    detail_type = overall.__class__.__name__.lower()
+
+    if overall_type == "delft3dfm":
+        if detail_type == "delft3dfm":
             nest1_delft3dfm_in_delft3dfm(overall, detail)
-        elif detail.type.lower() == "sfincs":
+        elif detail_type == "sfincs":
             nest1_sfincs_in_delft3dfm(overall, detail)
-        elif detail.type.lower() == "beware":
+        elif detail_type == "beware":
             nest1_beware_in_delft3dfm(overall, detail)
+        else:
+            print("Nesting step 1 not implemented for this combination of models")
+            return False
             
-    elif overall.type.lower() == "sfincs":
-        if detail.type.lower() == "sfincs":
+    elif overall_type == "sfincs":
+        if detail_type == "sfincs":
             nest1_sfincs_in_sfincs(overall, detail)
-        elif detail.type.lower() == "xbeach":
+        elif detail_type == "xbeach":
             nest1_xbeach_in_sfincs(overall, detail)
-        elif detail.type.lower() == "beware":
+        elif detail_type == "beware":
             nest1_beware_in_sfincs(overall, detail)
+        else:
+            print("Nesting step 1 not implemented for this combination of models")
+            return False
 
-    elif overall.type.lower() == "hurrywave":
-        if detail.type.lower() == "hurrywave":
+    elif overall_type == "hurrywave":
+        if detail_type == "hurrywave":
             nest1_hurrywave_in_hurrywave(overall, detail)
-        elif detail.type.lower() == "xbeach":    
+        elif detail_type == "xbeach":    
             nest1_xbeach_in_hurrywave(overall, detail)
-        elif detail.type.lower() == "sfincs":    
+        elif detail_type == "sfincs":    
             nest1_sfincs_in_hurrywave(overall, detail)
-        elif detail.type.lower() == "beware":
+        elif detail_type == "beware":
             nest1_beware_in_hurrywave(overall, detail)
+        else:
+            print("Nesting step 1 not implemented for this combination of models")
+            return False
 
-    elif overall.type.lower() == "beware":
-        if detail.type.lower() == "sfincs":
+    elif overall_type == "beware":
+        if detail_type == "sfincs":
             # No need to do anything here. BEWARE output points are fixed
             pass
+        else:
+            print("Nesting step 1 not implemented for this combination of models")
+            return False
+
+    return True    
 
 #        elif detail.type == "delft3dfm":
 #            obs = nest1_delft3dfm_in_sfincs(overall, detail)
@@ -107,9 +132,14 @@ def nest1_sfincs_in_sfincs(overall, detail):
                                        overall.crs,
                                        always_xy=True)
     
+    # Get list of names of the observation points
+    overall_names = overall.observation_points.list_names()
     # Loop over all points in the gdf of the boundary conditions
     for ind, row in detail.boundary_conditions.gdf.iterrows():
         name = detail.name + "_" + str(ind + 1).zfill(4)
+        if name in overall_names:
+            print(f"Observation point {name} already exists in the model")
+            continue
         x = row["geometry"].coords[0][0]
         y = row["geometry"].coords[0][1]
         x, y = transformer.transform(x, y)

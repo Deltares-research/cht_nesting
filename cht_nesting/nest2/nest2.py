@@ -19,6 +19,7 @@ from .sfincs_in_sfincs import sfincs_in_sfincs
 
 def nest2(overall,
           detail,
+          obs_point_prefix=None,
           output_path=None,
           output_file=None,
           bc_path=None,
@@ -26,18 +27,13 @@ def nest2(overall,
           overall_crs=None,
           detail_crs=None,
 	      option=None,
-          boundary_water_level_correction=None,
+          boundary_water_level_correction=0.0,
           filter_incoming=False,
           bctype="waterlevel",          
           return_maximum=False):
 
-
-    if not boundary_water_level_correction:
-        # Path of the overall output time series
-        boundary_water_level_correction = 0.0
-    
     if type(overall) == str:
-        overall_str = overall
+        # Overall is a string, so we need to instantiate the class
         if overall == "sfincs":
             from cht_sfincs.sfincs import SFINCS
             overall = SFINCS()
@@ -53,16 +49,19 @@ def nest2(overall,
         elif overall == "delft3dfm":
             from cht_delft3dfm.delft3dfm import Delft3DFM
             overall = Delft3DFM()           
-        overall.type = overall_str
+
+    # Get the types of overall and detail classes
+    overall_type = overall.__class__.__name__.lower()
+    detail_type = overall.__class__.__name__.lower()
 
     if overall_crs is not None:
         overall.crs = CRS(overall_crs)
     if detail_crs is not None:
         detail.crs = CRS(detail_crs)
 
-    if overall.type.lower() == "delft3dfm":
+    if overall_type == "delft3dfm":
 
-        if detail.type.lower() == "delft3dfm":
+        if detail_type == "delft3dfm":
             nest2_delft3dfm_in_delft3dfm(overall,
                                             detail,
                                             output_path=output_path,
@@ -70,7 +69,7 @@ def nest2(overall,
                                             bc_path=bc_path,
                                             boundary_water_level_correction=boundary_water_level_correction)
 
-        elif detail.type.lower() == "sfincs":
+        elif detail_type == "sfincs":
             nest2_sfincs_in_delft3dfm(overall,
                                             detail,
                                             output_path=output_path,
@@ -78,7 +77,7 @@ def nest2(overall,
                                             bc_path=bc_path,
                                             boundary_water_level_correction=boundary_water_level_correction)
 
-        elif detail.type.lower() == "beware":
+        elif detail_type == "beware":
             nest2_beware_in_delft3dfm(overall,
                                             detail,
                                             output_path=output_path,
@@ -87,11 +86,12 @@ def nest2(overall,
                                             option=option,
                                             boundary_water_level_correction=boundary_water_level_correction)
             
-    elif overall.type.lower() == "sfincs":
+    elif overall_type == "sfincs":
 
-        if detail.type.lower() == "sfincs":
+        if detail_type == "sfincs":
             zs = sfincs_in_sfincs(overall,    
                                   detail,
+                                  obs_point_prefix=obs_point_prefix,
                                   output_path=output_path,
                                   output_file=output_file,
                                   bc_path=bc_path,
@@ -101,7 +101,7 @@ def nest2(overall,
                                   bctype=bctype          
                                  ) 
             return zs
-        elif detail.type.lower() == "xbeach":
+        elif detail_type == "xbeach":
             bc = nest2_xbeach_in_sfincs(overall,
                                             detail,
                                             output_path=output_path,
@@ -110,7 +110,7 @@ def nest2(overall,
                                             boundary_water_level_correction=boundary_water_level_correction,
                                             return_maximum=return_maximum)
             return bc
-        elif detail.type.lower() == "beware":
+        elif detail_type == "beware":
             nest2_beware_in_sfincs(overall,
                                             detail,
                                             output_path=output_path,
@@ -119,16 +119,17 @@ def nest2(overall,
                                             option=option,
                                             boundary_water_level_correction=boundary_water_level_correction)
 
-    elif overall.type.lower() == "hurrywave":
+    elif overall_type == "hurrywave":
 
-        if detail.type.lower() == "hurrywave":
+        if detail_type == "hurrywave":
             nest2_hurrywave_in_hurrywave(overall,
                                             detail,
+                                            obs_point_prefix=obs_point_prefix,
                                             output_path=output_path,
                                             output_file=output_file,
                                             bc_path=bc_path)
             
-        elif detail.type.lower() == "xbeach":
+        elif detail_type == "xbeach":
             bc = nest2_xbeach_in_hurrywave(overall,
                                             detail,
                                             output_path=output_path,
@@ -137,23 +138,23 @@ def nest2(overall,
                                             option=option,
                                             return_maximum=return_maximum)
             return bc
-        elif detail.type.lower() == "sfincs":
+        elif detail_type == "sfincs":
             nest2_sfincs_in_hurrywave(overall,
                                             detail,
                                             output_path=output_path,
                                             output_file=output_file,
                                             bc_path=bc_path)
 
-        elif detail.type.lower() == "beware":
+        elif detail_type == "beware":
             nest2_beware_in_hurrywave(overall,
                                             detail,
                                             output_path=output_path,
                                             output_file=output_file,
                                             bc_path=bc_path)
 
-    elif overall.type.lower() == "beware":
+    elif overall_type == "beware":
 
-        if detail.type.lower() == "sfincs":
+        if detail_type == "sfincs":
             nest2_sfincs_in_beware(overall,
                                             detail,
                                             output_path=output_path,
@@ -162,6 +163,7 @@ def nest2(overall,
                                             option=option,
                                             boundary_water_level_correction=boundary_water_level_correction)
 
+    return True
 
 def nest2_delft3dfm_in_delft3dfm(overall,
                                  detail,
@@ -411,6 +413,7 @@ def nest2_beware_in_sfincs(overall,
 
 def nest2_hurrywave_in_hurrywave(overall,
                                  detail,
+                                 obs_point_prefix=None,
                                  output_path=None,
                                  output_file=None,
                                  bc_path=None):
@@ -440,7 +443,7 @@ def nest2_hurrywave_in_hurrywave(overall,
     if len(detail.boundary_conditions.gdf)>0:
         for ind, row in detail.boundary_conditions.gdf.iterrows():
         # Find required boundary points        
-            point_names.append(detail.name + "_" + row["name"])                    
+            point_names.append(obs_point_prefix + "_" + row["name"])                    
         
     else:
         point_names = all_stations.copy()

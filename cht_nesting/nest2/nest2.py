@@ -52,7 +52,14 @@ def nest2(overall,
 
     # Get the types of overall and detail classes
     overall_type = overall.__class__.__name__.lower()
-    detail_type = overall.__class__.__name__.lower()
+    detail_type = detail.__class__.__name__.lower()
+
+    # Check if detail model has attribute name
+    if obs_point_prefix is None:
+        if hasattr(detail, "name"):
+            obs_point_prefix = detail.name
+        else:
+            obs_point_prefix = "nest"
 
     if overall_crs is not None:
         overall.crs = CRS(overall_crs)

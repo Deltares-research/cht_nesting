@@ -19,7 +19,7 @@ def nest1(overall, detail, option=None, obs_point_prefix=None):
     # Returns a list with observation point objects
 
     # Check if detail model has attribute name
-    if obs_point_prefix is not None:
+    if obs_point_prefix is None:
         if not hasattr(detail, "name"):
             detail.name = "nest"
     else:
@@ -27,7 +27,7 @@ def nest1(overall, detail, option=None, obs_point_prefix=None):
 
     # Get the types of overall and detail classes
     overall_type = overall.__class__.__name__.lower()
-    detail_type = overall.__class__.__name__.lower()
+    detail_type = detail.__class__.__name__.lower()
 
     if overall_type == "delft3dfm":
         if detail_type == "delft3dfm":
@@ -179,7 +179,8 @@ def nest1_beware_in_sfincs(overall, detail):
         x, y = transformer.transform(point.geometry.x,
                                      point.geometry.y)
 #        obs_list.append(obspoint(x, y, name, crs=overall.crs))
-        overall.add_observation_point(x, y, name)
+        # overall.add_observation_point(x, y, name)
+        overall.observation_points.add_point(x, y, name)
 
 def nest1_hurrywave_in_hurrywave(overall, detail):
 

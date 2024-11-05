@@ -188,6 +188,7 @@ def nest2_delft3dfm_in_delft3dfm(overall,
         bzs = overall.read_timeseries_output(name_list=point_names,
                                              path=output_path,
                                              file_name=output_file)
+        
         ts  = bzs.index
         for ip, point in enumerate(bnd.point):
             point.data = pd.Series(bzs.iloc[:,ip].values, index=ts) + boundary_water_level_correction    
@@ -343,8 +344,9 @@ def nest2_xbeach_in_sfincs(overall,
     zstfile = os.path.join(output_path, output_file)
 
     # Return DataFrame bzs
-    bzs = overall.read_timeseries_output(name_list=point_names,
-                                         file_name=zstfile)
+    bzs = overall.output.read_his_file(station=point_names,
+                                       parameter="point_zs",
+                                       file_name=zstfile)
 
     # Interpolate on desired format for XBeach forcing
     bzs_resampled = bzs.resample('10min').mean()
@@ -407,8 +409,9 @@ def nest2_beware_in_sfincs(overall,
         # output_file = os.path.join(output_path, output_file)
 
         # Return DataFrame bzs
-        bzs = overall.read_timeseries_output(name_list=point_names,
-                                             file_name=os.path.join(output_path, output_file))
+        bzs = overall.output.read_his_file(station=point_names,
+                                        parameter="point_zs",
+                                        file_name=os.path.join(output_path, output_file))
 
         # Replace -999.0 with zeros. This should not happen, but easy fix for now.
         bzs = bzs.replace(-999.0,0.0)

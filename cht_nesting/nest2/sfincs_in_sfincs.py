@@ -105,16 +105,12 @@ def sfincs_in_sfincs(overall,
 
     # Write bzs file
     if bc_path is not None:
-        # detail.write_flow_boundary_conditions(file_name=os.path.join(bc_path, detail.input.bzsfile))
-        # detail.boundary_conditions.write(file_name=os.path.join(bc_path, detail.input.variables.bzsfile))
-        detail.boundary_conditions.write()
+        detail.boundary_conditions.write_boundary_conditions_timeseries()
 
-    # zs_maximum for clustering
     # zs_maximum for clustering
     if return_maximum:
         zmax = -999.0
         for icol, point in detail.boundary_conditions.gdf.iterrows():
-        # for icol, point in enumerate(detail.flow_boundary_point):
             zx = point.data.max()
             if zx>zmax:
                 zs = point.data

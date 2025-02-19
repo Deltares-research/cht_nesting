@@ -148,6 +148,7 @@ def nest2(overall,
         elif detail_type == "sfincs":
             nest2_sfincs_in_hurrywave(overall,
                                             detail,
+                                            obs_point_prefix=obs_point_prefix,
                                             output_path=output_path,
                                             output_file=output_file,
                                             bc_path=bc_path)
@@ -487,6 +488,7 @@ def nest2_hurrywave_in_hurrywave(overall,
      
 def nest2_xbeach_in_hurrywave(overall,
                               detail,
+                              obs_point_prefix=None,
                               output_path=None,
                               output_file=None,
                               option=None,
@@ -649,6 +651,7 @@ def nest2_xbeach_in_hurrywave(overall,
 
 def nest2_sfincs_in_hurrywave(overall,
                               detail,
+                              obs_point_prefix=None,
                               output_path=None,
                               output_file=None,
                               bc_path=None):
@@ -670,11 +673,10 @@ def nest2_sfincs_in_hurrywave(overall,
         all_stations.append(st)
 
     point_names = []    
-    if detail.wave_boundary_point:
+    if len(detail.snapwave.boundary_conditions.gdf) > 0:
         # Find required boundary points        
-        for point in detail.wave_boundary_point:
-            point_names.append(detail.name + "_" + point.name)                    
-        
+        for ind, point in detail.snapwave.boundary_conditions.gdf.iterrows():
+            point_names.append(obs_point_prefix + "_" + point["name"])        
     else:
         point_names = all_stations.copy()
         
@@ -687,20 +689,24 @@ def nest2_sfincs_in_hurrywave(overall,
                 ireq.append(ist)            
                 break
 
-    for ip, point in enumerate(detail.wave_boundary_point):
+    for ip, point in detail.snapwave.boundary_conditions.gdf.iterrows():
 
         hm0     = ddd.point_hm0.values[:,ireq[ip]]
         tp      = ddd.point_tp.values[:,ireq[ip]]
         wavdir  = ddd.point_wavdir.values[:,ireq[ip]]
         dirspr  = ddd.point_dirspr.values[:,ireq[ip]]
+        # Limit direction spreading to values between 4.0 and 55.0 degrees
+        dirspr = np.clip(dirspr, 4.0, 55.0)
+        # Limit period to values between 1.0 and 25.0 seconds
+        tp = np.clip(tp, 1.0, 25.0)
 
         df = pd.DataFrame(index=times)
-        df.insert(0,"hm0",hm0)
+        df.insert(0,"hs",hm0)
         df.insert(1,"tp",tp)
-        df.insert(2,"wavdir",wavdir)
-        df.insert(3,"dirspr",dirspr)
+        df.insert(2,"wd",wavdir)
+        df.insert(3,"ds",dirspr)
 
-        point.data = df
+        detail.snapwave.boundary_conditions.gdf.at[ip, "timeseries"] = df
 
     if bc_path is not None:
         detail.write_wave_boundary_conditions(path=bc_path)

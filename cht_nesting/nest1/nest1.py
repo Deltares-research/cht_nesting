@@ -218,7 +218,7 @@ def nest1_sfincs_in_hurrywave(overall, detail):
                                        overall.crs,
                                        always_xy=True)
 
-    for ind, point in enumerate(detail.wave_boundary_point):
+    for ind, point in detail.snapwave.boundary_conditions.gdf.iterrows():
 
         name = detail.name + "_" + str(ind + 1).zfill(4)
         x, y = transformer.transform(point.geometry.x,

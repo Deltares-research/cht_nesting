@@ -15,7 +15,7 @@ import pandas as pd
 # import datetime 
 from cht_utils.deltares_ini import IniStruct
 from cht_tide.tide_predict import predict
-from cht_physics.waves import split_waves_guza
+from cht_utils.physics.waves import split_waves_guza
 
 def sfincs_in_sfincs(overall,
                      detail,

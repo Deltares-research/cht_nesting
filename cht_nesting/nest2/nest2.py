@@ -493,7 +493,7 @@ def nest2_xbeach_in_hurrywave(overall,
                               return_maximum=False,
                               bc_path=None):
     
-    from cht_physics.deshoal import deshoal
+    from cht_utils.physics.deshoal import deshoal
     from scipy import interpolate
     if not output_path:
         # Path of the overall output time series

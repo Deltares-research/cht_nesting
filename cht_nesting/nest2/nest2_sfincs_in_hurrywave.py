@@ -79,4 +79,4 @@ def nest2_sfincs_in_hurrywave(overall: Any,
         detail.snapwave.boundary_conditions.gdf.at[ip, "timeseries"] = df
 
     if bc_path is not None:
-        detail.write_wave_boundary_conditions(path=bc_path)
+        detail.snapwave.boundary_conditions.write_boundary_conditions_timeseries()

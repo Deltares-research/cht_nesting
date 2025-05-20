@@ -8,6 +8,7 @@ This module defines the nest2_sfincs_in_hurrywave function for handling nesting 
 import os
 import xarray as xr
 import pandas as pd
+import numpy as np
 from typing import Optional, Any
 
 def nest2_sfincs_in_hurrywave(overall: Any,

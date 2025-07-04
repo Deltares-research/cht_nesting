@@ -11,6 +11,7 @@ import pandas as pd
 import numpy as np
 from scipy import interpolate
 from typing import Optional, Any
+from cht_physics.deshoal import deshoal
 
 def nest2_xbeach_in_hurrywave(overall: Any,
                               detail: Any,
@@ -129,7 +130,7 @@ def nest2_xbeach_in_hurrywave(overall: Any,
                     zs = 0 * hm0
 
                 for ih, h in enumerate(hm0):
-                    hm0_deshoal.append(deshoal(h, tp[ih], abs(zb_point) + zs[ih], abs(detail.zb_deshoal))[0] + zs[ih])
+                    hm0_deshoal.append(deshoal(h, tp[ih], abs(zb_point)+zs[ih],abs(detail.zb_deshoal)+zs[ih])[0])
 
                 hm0 = hm0_deshoal
 

@@ -102,7 +102,7 @@ def nest2_sfincs_in_sfincs(overall: Any,
     # Astro correction
     vcor = 0.0
     if detail.input.variables.corfile:
-        vcor = get_vcor(os.path.join(detail.path, detail.input.corfile), ts)
+        vcor = get_vcor(os.path.join(detail.path, detail.input.variables.corfile), ts)
 
     for icol, point in detail.boundary_conditions.gdf.iterrows():
         df = pd.DataFrame()

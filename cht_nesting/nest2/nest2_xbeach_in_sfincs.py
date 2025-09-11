@@ -37,7 +37,7 @@ def nest2_xbeach_in_sfincs(overall: Any,
         # Path of the overall output time series
         output_path = overall.path
         
-    if overall.input.outputformat[0:3] == "bin":
+    if overall.input.variables.outputformat[0:3] == "bin":
         # ascii output        
         if not output_file:
             output_file = "zst.txt"

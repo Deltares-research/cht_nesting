@@ -15,12 +15,16 @@ def nest1_sfincs_in_sfincs(overall, detail):
     # Check if overall model is in geographic coordinates. If so, make sure that longitude is correct. Either 0-360 or -180-180.
     overall_degrees_west = False
     if overall.crs.is_geographic:
-        # Get max longitude of the overall model
-        if overall.grid.data is None:
-            overall.grid.read()
-        x_max = overall.grid.data.grid.face_coordinates[:, 0].max()
-        if x_max > 180.0:
-            overall_degrees_west = True
+        try:
+            # Get max longitude of the overall model
+            if overall.grid.data is None:
+                overall.grid.read()
+            x_max = overall.grid.data.grid.face_coordinates[:, 0].max()
+            if x_max > 180.0:
+                overall_degrees_west = True
+        except Exception as e:
+            print(f"Could not determine if overall model is in degrees west: {str(e)}")
+            pass
 
     # Get list of names of the observation points
     overall_names = overall.observation_points.list_names()

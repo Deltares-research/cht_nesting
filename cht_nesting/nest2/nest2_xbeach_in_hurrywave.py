@@ -6,22 +6,26 @@ This module defines the nest2_xbeach_in_hurrywave function for handling nesting 
 """
 
 import os
-import xarray as xr
-import pandas as pd
-import numpy as np
-from scipy import interpolate
-from typing import Optional, Any
-from cht_physics.deshoal import deshoal
+from typing import Any, Optional
 
-def nest2_xbeach_in_hurrywave(overall: Any,
-                              detail: Any,
-                              obs_point_prefix: Optional[str] = None,
-                              output_path: Optional[str] = None,
-                              output_file: Optional[str] = None,
-                              option: Optional[str] = None,
-                              return_maximum: bool = False,
-                              bc_path: Optional[str] = None,
-                              **kwargs) -> Any:
+import numpy as np
+import pandas as pd
+import xarray as xr
+from cht_physics.deshoal import deshoal
+from scipy import interpolate
+
+
+def nest2_xbeach_in_hurrywave(
+    overall: Any,
+    detail: Any,
+    obs_point_prefix: Optional[str] = None,
+    output_path: Optional[str] = None,
+    output_file: Optional[str] = None,
+    option: Optional[str] = None,
+    return_maximum: bool = False,
+    bc_path: Optional[str] = None,
+    **kwargs,
+) -> Any:
     """
     Nest an XBeach model within a HurryWave model.
 
@@ -77,8 +81,8 @@ def nest2_xbeach_in_hurrywave(overall: Any,
             sp2 = ddd.point_spectrum2d.values[:, ireq[ip], :, :]
 
             ds = xr.Dataset(
-                data_vars=dict(point_spectrum2d=(["time", "theta", "sigma"], sp2)),
-                coords=dict(time=times, theta=theta, sigma=sigma)
+                data_vars={"point_spectrum2d": (["time", "theta", "sigma"], sp2)},
+                coords={"time": times, "theta": theta, "sigma": sigma},
             )
 
             point.data = ds
@@ -124,13 +128,22 @@ def nest2_xbeach_in_hurrywave(overall: Any,
                     # Interpolate to wave timeseries
                     wave_secs = times.astype(float)
                     flow_secs = zs.index.values.astype(float)
-                    f = interpolate.interp1d(flow_secs, zs, fill_value=0, bounds_error=False)
+                    f = interpolate.interp1d(
+                        flow_secs, zs, fill_value=0, bounds_error=False
+                    )
                     zs = f(wave_secs)
-                except:
+                except Exception:
                     zs = 0 * hm0
 
                 for ih, h in enumerate(hm0):
-                    hm0_deshoal.append(deshoal(h, tp[ih], abs(zb_point)+zs[ih],abs(detail.zb_deshoal)+zs[ih])[0])
+                    hm0_deshoal.append(
+                        deshoal(
+                            h,
+                            tp[ih],
+                            abs(zb_point) + zs[ih],
+                            abs(detail.zb_deshoal) + zs[ih],
+                        )[0]
+                    )
 
                 hm0 = hm0_deshoal
 
@@ -146,16 +159,18 @@ def nest2_xbeach_in_hurrywave(overall: Any,
             df.insert(0, "hm0", hm0)
             df.insert(1, "tp", tp)
             df.insert(2, "wavdir", wavdir)
-            df.insert(3, 'gammajsp', 3.3)
+            df.insert(3, "gammajsp", 3.3)
             df.insert(4, "s", s)
 
             # Resample to half-hourly data
-            df_resampled = df.resample('30min').max()
-            df_interpolated = df_resampled.interpolate(method='linear')
-            mask = (df_interpolated.index >= detail.tref) & (df_interpolated.index <= detail.tstop)
+            df_resampled = df.resample("30min").max()
+            df_interpolated = df_resampled.interpolate(method="linear")
+            mask = (df_interpolated.index >= detail.tref) & (
+                df_interpolated.index <= detail.tstop
+            )
             df_filtered = df_interpolated[mask]
 
-            df_filtered.insert(5, 'duration', 1800)
+            df_filtered.insert(5, "duration", 1800)
             df_filtered.insert(6, "dtbc", 1)
 
             point.data = df_filtered

@@ -6,18 +6,22 @@ This module defines the nest2_sfincs_in_hurrywave function for handling nesting 
 """
 
 import os
-import xarray as xr
-import pandas as pd
-import numpy as np
-from typing import Optional, Any
+from typing import Any, Optional
 
-def nest2_sfincs_in_hurrywave(overall: Any,
-                              detail: Any,
-                              obs_point_prefix: Optional[str] = None,
-                              output_path: Optional[str] = None,
-                              output_file: Optional[str] = None,
-                              bc_path: Optional[str] = None,
-                              **kwargs) -> None:
+import numpy as np
+import pandas as pd
+import xarray as xr
+
+
+def nest2_sfincs_in_hurrywave(
+    overall: Any,
+    detail: Any,
+    obs_point_prefix: Optional[str] = None,
+    output_path: Optional[str] = None,
+    output_file: Optional[str] = None,
+    bc_path: Optional[str] = None,
+    **kwargs,
+) -> None:
     """
     Nest a SFINCS model within a HurryWave model.
 
@@ -35,7 +39,7 @@ def nest2_sfincs_in_hurrywave(overall: Any,
         output_path = overall.path
     if not output_file:
         output_file = "hurrywave_his.nc"
-        
+
     file_name = os.path.join(output_path, output_file)
     print("Nesting in " + file_name)
 
@@ -46,12 +50,12 @@ def nest2_sfincs_in_hurrywave(overall: Any,
 
     point_names = []
     if len(detail.snapwave.boundary_conditions.gdf) > 0:
-        # Find required boundary points        
+        # Find required boundary points
         for ind, point in detail.snapwave.boundary_conditions.gdf.iterrows():
-            point_names.append(obs_point_prefix + "_" + point["name"])        
+            point_names.append(obs_point_prefix + "_" + point["name"])
     else:
         point_names = all_stations.copy()
-        
+
     times = ddd.point_hm0.coords["time"].values
 
     ireq = []
@@ -77,7 +81,7 @@ def nest2_sfincs_in_hurrywave(overall: Any,
         df.insert(2, "wd", wavdir)
         df.insert(3, "ds", dirspr)
 
-        detail.snapwave.boundary_conditions.gdf.at[ip, "timeseries"] = df
+        detail.snapwave.boundary_conditions.gdf.loc[ip, "timeseries"] = df
 
     if bc_path is not None:
         detail.snapwave.boundary_conditions.write_boundary_conditions_timeseries()

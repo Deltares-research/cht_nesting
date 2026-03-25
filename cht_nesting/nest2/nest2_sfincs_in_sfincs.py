@@ -6,22 +6,26 @@ This module defines the nest2_sfincs_in_sfincs function for handling nesting of 
 """
 
 import os
+from typing import Any, Optional
+
 import pandas as pd
-from typing import Optional, Any
-from cht_utils.deltares_ini import IniStruct
 from cht_tide.tide_predict import predict
+from cht_utils.deltares_ini import IniStruct
 from cht_utils.physics.waves import split_waves_guza
 
-def nest2_sfincs_in_sfincs(overall: Any,
-                           detail: Any,
-                           obs_point_prefix: Optional[str] = None,
-                           output_path: Optional[str] = None,
-                           output_file: Optional[str] = None,
-                           boundary_water_level_correction: float = 0.0,
-                           return_maximum: bool = False,
-                           filter_incoming: bool = False,
-                           bc_path: Optional[str] = None,
-                           **kwargs) -> Any:
+
+def nest2_sfincs_in_sfincs(
+    overall: Any,
+    detail: Any,
+    obs_point_prefix: Optional[str] = None,
+    output_path: Optional[str] = None,
+    output_file: Optional[str] = None,
+    boundary_water_level_correction: float = 0.0,
+    return_maximum: bool = False,
+    filter_incoming: bool = False,
+    bc_path: Optional[str] = None,
+    **kwargs,
+) -> Any:
     """
     Nest a SFINCS model within another SFINCS model.
 
@@ -64,25 +68,25 @@ def nest2_sfincs_in_sfincs(overall: Any,
     zstfile = os.path.join(output_path, output_file)
 
     # Return DataFrame bzs
-    bzs = overall.output.read_his_file(station=point_names,
-                                       parameter="zs",
-                                       file_name=zstfile)
+    bzs = overall.output.read_his_file(
+        station=point_names, parameter="zs", file_name=zstfile
+    )
     ts = bzs.index
 
     # Check if filtering is needed
     if filter_incoming:
         # Read velocities
-        bzu = overall.output.read_his_file(station=point_names,
-                                           parameter="point_u",
-                                           file_name=zstfile)
-        bzv = overall.output.read_his_file(station=point_names,
-                                           parameter="point_v",
-                                           file_name=zstfile)
+        bzu = overall.output.read_his_file(
+            station=point_names, parameter="point_u", file_name=zstfile
+        )
+        bzv = overall.output.read_his_file(
+            station=point_names, parameter="point_v", file_name=zstfile
+        )
 
         # Read bed levels
-        bzb = overall.output.read_his_file(station=point_names,
-                                           parameter="zb",
-                                           file_name=zstfile)
+        bzb = overall.output.read_his_file(
+            station=point_names, parameter="zb", file_name=zstfile
+        )
 
         # Loop over all points
         for icol, point in detail.boundary_conditions.gdf.iterrows():
@@ -109,7 +113,7 @@ def nest2_sfincs_in_sfincs(overall: Any,
         df["time"] = ts
         df["wl"] = bzs.iloc[:, icol].values + boundary_water_level_correction + vcor
         df = df.set_index("time")
-        detail.boundary_conditions.gdf.at[icol, "timeseries"] = df
+        detail.boundary_conditions.gdf.loc[icol, "timeseries"] = df
 
     # Write bzs file
     if bc_path is not None:

@@ -5,36 +5,44 @@ Created on Fri Sep  3 13:40:56 2021
 This module defines the nest2 function for handling nesting in various models.
 """
 
+from typing import Any, Optional
+
 from pyproj import CRS
-from typing import Optional, Any
 
-from .nest2_delft3dfm_in_delft3dfm import nest2_delft3dfm_in_delft3dfm
-from .nest2_sfincs_in_delft3dfm import nest2_sfincs_in_delft3dfm
 from .nest2_beware_in_delft3dfm import nest2_beware_in_delft3dfm
-from .nest2_sfincs_in_sfincs import nest2_sfincs_in_sfincs
-from .nest2_xbeach_in_sfincs import nest2_xbeach_in_sfincs
-from .nest2_beware_in_sfincs import nest2_beware_in_sfincs
-from .nest2_hurrywave_in_hurrywave import nest2_hurrywave_in_hurrywave
-from .nest2_xbeach_in_hurrywave import nest2_xbeach_in_hurrywave
-from .nest2_sfincs_in_hurrywave import nest2_sfincs_in_hurrywave
 from .nest2_beware_in_hurrywave import nest2_beware_in_hurrywave
+from .nest2_beware_in_sfincs import nest2_beware_in_sfincs
+from .nest2_beware_in_sfincsmodel import nest2_beware_in_sfincsmodel
+from .nest2_delft3dfm_in_delft3dfm import nest2_delft3dfm_in_delft3dfm
+from .nest2_delft3dfm_in_sfincsmodel import nest2_delft3dfm_in_sfincsmodel
+from .nest2_hurrywave_in_hurrywave import nest2_hurrywave_in_hurrywave
+from .nest2_hurrywave_in_sfincsmodel import nest2_hurrywave_in_sfincsmodel
+from .nest2_sfincs_in_delft3dfm import nest2_sfincs_in_delft3dfm
+from .nest2_sfincs_in_hurrywave import nest2_sfincs_in_hurrywave
+from .nest2_sfincs_in_sfincs import nest2_sfincs_in_sfincs
+
 # from .nest2_sfincs_in_beware import nest2_sfincs_in_beware # This function is no longer compatible with the current version of the cht_sfincs
+from .nest2_sfincsmodel_in_sfincsmodel import nest2_sfincsmodel_in_sfincsmodel
+from .nest2_xbeach_in_hurrywave import nest2_xbeach_in_hurrywave
+from .nest2_xbeach_in_sfincs import nest2_xbeach_in_sfincs
 
 
-def nest2(overall: Any,
-          detail: Any,
-          obs_point_prefix: Optional[str] = None,
-          output_path: Optional[str] = None,
-          output_file: Optional[str] = None,
-          bc_path: Optional[str] = None,
-          bc_file: Optional[str] = None,
-          overall_crs: Optional[str] = None,
-          detail_crs: Optional[str] = None,
-          option: Optional[str] = None,
-          boundary_water_level_correction: float = 0.0,
-          filter_incoming: bool = False,
-          bctype: str = "waterlevel",
-          return_maximum: bool = False) -> Any:
+def nest2(
+    overall: Any,
+    detail: Any,
+    obs_point_prefix: Optional[str] = None,
+    output_path: Optional[str] = None,
+    output_file: Optional[str] = None,
+    bc_path: Optional[str] = None,
+    bc_file: Optional[str] = None,
+    overall_crs: Optional[str] = None,
+    detail_crs: Optional[str] = None,
+    option: Optional[str] = None,
+    boundary_water_level_correction: float = 0.0,
+    filter_incoming: bool = False,
+    bctype: str = "waterlevel",
+    return_maximum: bool = False,
+) -> Any:
     """
     Nest a detailed model within an overall model.
 
@@ -64,21 +72,27 @@ def nest2(overall: Any,
         # Overall is a string, so we need to instantiate the class
         if overall == "sfincs":
             from cht_sfincs import SFINCS
+
             overall = SFINCS()
         elif overall == "hydromt_sfincs":
             from hydromt_sfincs import SfincsModel
+
             overall = SfincsModel()
         elif overall == "hurrywave":
             from cht_hurrywave import HurryWave
+
             overall = HurryWave()
         elif overall == "xbeach":
             from cht_xbeach import XBeach
+
             overall = XBeach()
         elif overall == "beware":
             from cht_beware import BEWARE
+
             overall = BEWARE()
         elif overall == "delft3dfm":
             from cht_delft3dfm import Delft3DFM
+
             overall = Delft3DFM()
 
     # Get the types of overall and detail classes
@@ -108,7 +122,7 @@ def nest2(overall: Any,
         "return_maximum": return_maximum,
         "filter_incoming": filter_incoming,
         "bctype": bctype,
-        "obs_point_prefix": obs_point_prefix
+        "obs_point_prefix": obs_point_prefix,
     }
 
     if overall_type == "delft3dfm":
@@ -116,11 +130,15 @@ def nest2(overall: Any,
             nest2_fcn = nest2_delft3dfm_in_delft3dfm
         elif detail_type == "sfincs":
             nest2_fcn = nest2_sfincs_in_delft3dfm
+        elif detail_type == "sfincsmodel":
+            nest2_fcn = nest2_delft3dfm_in_sfincsmodel
         elif detail_type == "beware":
             nest2_fcn = nest2_beware_in_delft3dfm
-    elif overall_type == "sfincs":
+    elif overall_type in ("sfincs", "sfincsmodel"):
         if detail_type == "sfincs":
             nest2_fcn = nest2_sfincs_in_sfincs
+        elif detail_type == "sfincsmodel":
+            nest2_fcn = nest2_sfincsmodel_in_sfincsmodel
         elif detail_type == "xbeach":
             nest2_fcn = nest2_xbeach_in_sfincs
         elif detail_type == "beware":
@@ -132,15 +150,19 @@ def nest2(overall: Any,
             nest2_fcn = nest2_xbeach_in_hurrywave
         elif detail_type == "sfincs":
             nest2_fcn = nest2_sfincs_in_hurrywave
+        elif detail_type == "sfincsmodel":
+            nest2_fcn = nest2_hurrywave_in_sfincsmodel
         elif detail_type == "beware":
             nest2_fcn = nest2_beware_in_hurrywave
     elif overall_type == "beware":
         if detail_type == "sfincs":
             nest2_fcn = nest2_sfincs_in_beware
+        elif detail_type == "sfincsmodel":
+            nest2_fcn = nest2_beware_in_sfincsmodel
 
     output = nest2_fcn(overall, detail, **kwargs)
 
-    if output is None:        
+    if output is None:
         output = True
 
     return output

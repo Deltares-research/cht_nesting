@@ -6,16 +6,20 @@ This module defines the nest2_sfincs_in_delft3dfm function for handling nesting 
 """
 
 import os
-import pandas as pd
-from typing import Optional, Any
+from typing import Any, Optional
 
-def nest2_sfincs_in_delft3dfm(overall: Any,
-                              detail: Any,
-                              output_path: Optional[str] = None,
-                              output_file: Optional[str] = None,
-                              boundary_water_level_correction: float = 0,
-                              bc_path: Optional[str] = None,
-                              **kwargs) -> None:
+import pandas as pd
+
+
+def nest2_sfincs_in_delft3dfm(
+    overall: Any,
+    detail: Any,
+    output_path: Optional[str] = None,
+    output_file: Optional[str] = None,
+    boundary_water_level_correction: float = 0,
+    bc_path: Optional[str] = None,
+    **kwargs,
+) -> None:
     """
     Nest a SFINCS model within a Delft3DFM model.
 
@@ -31,17 +35,24 @@ def nest2_sfincs_in_delft3dfm(overall: Any,
     if not output_file:
         output_file = "flow_his.nc"
 
-    point_names = [detail.name + "_" + point.name for point in detail.flow_boundary_point]
+    point_names = [
+        detail.name + "_" + point.name for point in detail.flow_boundary_point
+    ]
     output_file = os.path.join(output_path, output_file)
 
     # Return DataFrame bzs
-    bzs = overall.read_timeseries_output(name_list=point_names,
-                                         path=output_path,
-                                         file_name=output_file)
+    bzs = overall.read_timeseries_output(
+        name_list=point_names, path=output_path, file_name=output_file
+    )
 
     ts = bzs.index
     for icol, point in enumerate(detail.flow_boundary_point):
-        point.data = pd.Series(bzs.iloc[:, icol].values, index=ts) + boundary_water_level_correction
+        point.data = (
+            pd.Series(bzs.iloc[:, icol].values, index=ts)
+            + boundary_water_level_correction
+        )
 
     if bc_path is not None:
-        detail.write_flow_boundary_conditions(file_name=os.path.join(bc_path, detail.input.bzsfile))
+        detail.write_flow_boundary_conditions(
+            file_name=os.path.join(bc_path, detail.input.bzsfile)
+        )

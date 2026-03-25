@@ -6,16 +6,20 @@ This module defines the nest2_beware_in_hurrywave function for handling nesting 
 """
 
 import os
-import xarray as xr
-import pandas as pd
-from typing import Optional, Any
+from typing import Any, Optional
 
-def nest2_beware_in_hurrywave(overall: Any,
-                              detail: Any,
-                              output_path: Optional[str] = None,
-                              output_file: Optional[str] = None,
-                              bc_path: Optional[str] = None,
-                              **kwargs) -> None:
+import pandas as pd
+import xarray as xr
+
+
+def nest2_beware_in_hurrywave(
+    overall: Any,
+    detail: Any,
+    output_path: Optional[str] = None,
+    output_file: Optional[str] = None,
+    bc_path: Optional[str] = None,
+    **kwargs,
+) -> None:
     """
     Nest a BEWARE model within a HurryWave model.
 
@@ -32,7 +36,7 @@ def nest2_beware_in_hurrywave(overall: Any,
         output_path = overall.path
     if not output_file:
         output_file = "hurrywave_his.nc"
-        
+
     file_name = os.path.join(output_path, output_file)
 
     # Open netcdf file
@@ -42,12 +46,12 @@ def nest2_beware_in_hurrywave(overall: Any,
 
     point_names = []
     if detail.wave_boundary_point:
-        # Find required boundary points        
+        # Find required boundary points
         for point in detail.wave_boundary_point:
-            point_names.append(detail.name + "_" + point.name)                    
+            point_names.append(detail.name + "_" + point.name)
     else:
         point_names = all_stations.copy()
-        
+
     times = ddd.point_hm0.coords["time"].values
 
     ireq = []

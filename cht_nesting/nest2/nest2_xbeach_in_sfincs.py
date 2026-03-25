@@ -6,17 +6,21 @@ This module defines the nest2_xbeach_in_sfincs function for handling nesting of 
 """
 
 import os
-import pandas as pd
-from typing import Optional, Any
+from typing import Any, Optional
 
-def nest2_xbeach_in_sfincs(overall: Any,
-                           detail: Any,
-                           output_path: Optional[str] = None,
-                           output_file: Optional[str] = None,
-                           boundary_water_level_correction: float = 0,
-                           return_maximum: bool = False,
-                           bc_path: Optional[str] = None,
-                           **kwargs) -> Any:
+import pandas as pd
+
+
+def nest2_xbeach_in_sfincs(
+    overall: Any,
+    detail: Any,
+    output_path: Optional[str] = None,
+    output_file: Optional[str] = None,
+    boundary_water_level_correction: float = 0,
+    return_maximum: bool = False,
+    bc_path: Optional[str] = None,
+    **kwargs,
+) -> Any:
     """
     Nest an XBeach model within a SFINCS model.
 
@@ -36,32 +40,37 @@ def nest2_xbeach_in_sfincs(overall: Any,
     if not output_path:
         # Path of the overall output time series
         output_path = overall.path
-        
+
     if overall.input.variables.outputformat[0:3] == "bin":
-        # ascii output        
+        # ascii output
         if not output_file:
             output_file = "zst.txt"
     else:
-        # netcdf        
+        # netcdf
         if not output_file:
             output_file = "sfincs_his.nc"
-    
-    point_names = [detail.name + "_" + point.name for point in detail.flow_boundary_point]
+
+    point_names = [
+        detail.name + "_" + point.name for point in detail.flow_boundary_point
+    ]
     zstfile = os.path.join(output_path, output_file)
 
     # Return DataFrame bzs
-    bzs = overall.output.read_his_file(station=point_names,
-                                       parameter="point_zs",
-                                       file_name=zstfile)
+    bzs = overall.output.read_his_file(
+        station=point_names, parameter="point_zs", file_name=zstfile
+    )
 
     # Interpolate on desired format for XBeach forcing
-    bzs_resampled = bzs.resample('10min').mean()
-    bzs_interpolated = bzs_resampled.interpolate(method='linear')
-    bzs_filtered = bzs_interpolated[detail.tref:detail.tstop]
-    
+    bzs_resampled = bzs.resample("10min").mean()
+    bzs_interpolated = bzs_resampled.interpolate(method="linear")
+    bzs_filtered = bzs_interpolated[detail.tref : detail.tstop]
+
     ts = bzs_filtered.index
     for icol, point in enumerate(detail.flow_boundary_point):
-        point.data = pd.Series(bzs_filtered.iloc[:, icol].values, index=ts) + boundary_water_level_correction
+        point.data = (
+            pd.Series(bzs_filtered.iloc[:, icol].values, index=ts)
+            + boundary_water_level_correction
+        )
 
     # Write boundary conditions
     if bc_path is not None:
@@ -77,7 +86,7 @@ def nest2_xbeach_in_sfincs(overall: Any,
                 if zx > zmax:
                     zs = point.data
                     zmax = zx
-                    
+
         elif len(detail.flow_boundary_point) == 4:
             for icol, point in enumerate(detail.flow_boundary_point):
                 if icol == 2:
@@ -87,6 +96,6 @@ def nest2_xbeach_in_sfincs(overall: Any,
                     zs = point.data
                     zmax = zx
 
-        return zs                          
-    else:    
+        return zs
+    else:
         return detail.flow_boundary_point

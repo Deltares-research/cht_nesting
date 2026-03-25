@@ -6,17 +6,20 @@ This module defines the nest2_hurrywave_in_hurrywave function for handling nesti
 """
 
 import os
-import xarray as xr
-import pandas as pd
-from typing import Optional, Any
+from typing import Any, Optional
 
-def nest2_hurrywave_in_hurrywave(overall: Any,
-                                 detail: Any,
-                                 obs_point_prefix: Optional[str] = None,
-                                 output_path: Optional[str] = None,
-                                 output_file: Optional[str] = None,
-                                 bc_path: Optional[str] = None,
-                                 **kwargs) -> None:
+import xarray as xr
+
+
+def nest2_hurrywave_in_hurrywave(
+    overall: Any,
+    detail: Any,
+    obs_point_prefix: Optional[str] = None,
+    output_path: Optional[str] = None,
+    output_file: Optional[str] = None,
+    bc_path: Optional[str] = None,
+    **kwargs,
+) -> None:
     """
     Nest a HurryWave model within another HurryWave model.
 
@@ -36,7 +39,7 @@ def nest2_hurrywave_in_hurrywave(overall: Any,
         output_file = "hurrywave_sp2.nc"
 
     file_name = os.path.join(output_path, output_file)
-    
+
     detail.boundary_conditions.forcing = "spectra"
 
     # Open netcdf file
@@ -51,30 +54,32 @@ def nest2_hurrywave_in_hurrywave(overall: Any,
     point_names = []
     if len(detail.boundary_conditions.gdf) > 0:
         for ind, row in detail.boundary_conditions.gdf.iterrows():
-            # Find required boundary points        
-            point_names.append(obs_point_prefix + "_" + row["name"])                    
+            # Find required boundary points
+            point_names.append(obs_point_prefix + "_" + row["name"])
     else:
         point_names = all_stations.copy()
-        
+
     times = ddd.point_spectrum2d.coords["time"].values
     sigma = ddd.point_spectrum2d.coords["sigma"].values
     theta = ddd.point_spectrum2d.coords["theta"].values
 
-    ireq = []    
+    ireq = []
     for ip, point in enumerate(point_names):
         for ist, st in enumerate(all_stations):
             if point.lower() == st.lower():
-                ireq.append(ist)            
+                ireq.append(ist)
                 break
 
     for ind, row in detail.boundary_conditions.gdf.iterrows():
         sp2 = ddd.point_spectrum2d.values[:, ireq[ind], :, :]
 
         ds = xr.Dataset(
-            data_vars=dict(point_spectrum2d=(["time", "theta", "sigma"], sp2)),
-            coords=dict(time=times, theta=theta, sigma=sigma)
+            data_vars={"point_spectrum2d": (["time", "theta", "sigma"], sp2)},
+            coords={"time": times, "theta": theta, "sigma": sigma},
         )
         detail.boundary_conditions.gdf.loc[ind, "spectra"] = ds.to_array()
 
     if bc_path is not None:
-        detail.boundary_conditions.write_boundary_conditions_spectra(file_name=os.path.join(bc_path, detail.input.variables.bspfile))
+        detail.boundary_conditions.write_boundary_conditions_spectra(
+            file_name=os.path.join(bc_path, detail.input.variables.bspfile)
+        )

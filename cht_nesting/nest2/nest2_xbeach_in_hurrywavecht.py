@@ -1,7 +1,8 @@
-"""Nest 2 script for nesting XBeach within hydromt_hurrywave HurrywaveModel.
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Sep  3 13:40:56 2021
 
-Reads wave output from the HurrywaveModel and sets wave boundary conditions
-on the detail XBeach model.
+This module defines the nest2_xbeach_in_hurrywave function for handling nesting of XBeach models within HurryWave models.
 """
 
 import os
@@ -14,7 +15,7 @@ from cht_physics.deshoal import deshoal
 from scipy import interpolate
 
 
-def nest2_xbeach_in_hurrywave(
+def nest2_xbeach_in_hurrywavecht(
     overall: Any,
     detail: Any,
     obs_point_prefix: Optional[str] = None,
@@ -25,29 +26,26 @@ def nest2_xbeach_in_hurrywave(
     bc_path: Optional[str] = None,
     **kwargs,
 ) -> Any:
-    """Nest an XBeach model within a HurrywaveModel.
+    """
+    Nest an XBeach model within a HurryWave model.
 
-    Parameters
-    ----------
-    overall : hydromt_hurrywave.HurrywaveModel
-        The coarse HurrywaveModel whose output is read.
-    detail : XBeach
-        The fine XBeach model that receives wave boundary conditions.
-    obs_point_prefix : str, optional
-        Prefix for observation point names.
-    output_path : str, optional
-        Directory containing the HurrywaveModel output files.
-    output_file : str, optional
-        Name of the output file.
-    option : str, optional
-        Nesting option ("sp2" or "timeseries").
-    return_maximum : bool, optional
-        When True, return peak wave heights.
-    bc_path : str, optional
-        If provided, write boundary conditions to disk.
+    Parameters:
+    overall (Any): The overall HurryWave model.
+    detail (Any): The detailed XBeach model.
+    obs_point_prefix (Optional[str]): The prefix for observation points. Default is None.
+    output_path (Optional[str]): The path to the output files. Default is None.
+    output_file (Optional[str]): The name of the output file. Default is None.
+    option (Optional[str]): The option for nesting ("sp2" or "timeseries"). Default is None.
+    return_maximum (bool): Whether to return the maximum values. Default is False.
+    bc_path (Optional[str]): The path to the boundary conditions files. Default is None.
+    **kwargs: Additional keyword arguments.
+
+    Returns:
+    Any: The boundary points or maximum values.
     """
     if not output_path:
-        output_path = str(overall.root.path)
+        # Path of the overall output time series
+        output_path = overall.path
 
     if option == "sp2":
         if not output_file:
@@ -55,12 +53,14 @@ def nest2_xbeach_in_hurrywave(
 
         file_name = os.path.join(output_path, output_file)
 
+        # Open netcdf file
         ddd = xr.open_dataset(file_name)
         stations = ddd.station_name.values
         all_stations = [str(st.strip())[2:-1] for st in stations]
 
         point_names = []
         if detail.wave_boundary_point:
+            # Find required boundary points
             for point in detail.wave_boundary_point:
                 point_names.append(detail.name + "_" + point.name)
         else:
@@ -93,12 +93,14 @@ def nest2_xbeach_in_hurrywave(
 
         file_name = os.path.join(output_path, output_file)
 
+        # Open netcdf file
         ddd = xr.open_dataset(file_name)
         stations = ddd.station_name.values
         all_stations = [str(st.strip())[2:-1] for st in stations]
 
         point_names = []
         if detail.wave_boundary_point:
+            # Find required boundary points
             for point in detail.wave_boundary_point:
                 point_names.append(detail.name + "_" + point.name)
         else:
@@ -123,6 +125,7 @@ def nest2_xbeach_in_hurrywave(
             if detail.zb_deshoal:
                 try:
                     zs = detail.flow_boundary_point[0].data
+                    # Interpolate to wave timeseries
                     wave_secs = times.astype(float)
                     flow_secs = zs.index.values.astype(float)
                     f = interpolate.interp1d(
@@ -144,8 +147,11 @@ def nest2_xbeach_in_hurrywave(
 
                 hm0 = hm0_deshoal
 
+            # Set wave direction such that waves are forced perpendicular to coast instead of real direction
             wavdir = np.mean([detail.params["thetamin"], detail.params["thetamax"]])
+            # wavdir = ddd.point_wavdir.values[:, ireq[ip]]
 
+            # Convert directional spread in degrees to XBeach spreading parameter
             dirspr = ddd.point_dirspr.values[:, ireq[ip]]
             s = 2 / (dirspr * np.pi / 180) ** 2 - 1
 
@@ -156,6 +162,7 @@ def nest2_xbeach_in_hurrywave(
             df.insert(3, "gammajsp", 3.3)
             df.insert(4, "s", s)
 
+            # Resample to half-hourly data
             df_resampled = df.resample("30min").max()
             df_interpolated = df_resampled.interpolate(method="linear")
             mask = (df_interpolated.index >= detail.tref) & (

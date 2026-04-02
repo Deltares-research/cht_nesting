@@ -16,7 +16,7 @@ import pandas as pd
 import xarray as xr
 
 
-def nest2_hurrywave_in_sfincsmodel(
+def nest2_sfincs_in_hurrywavecht(
     overall: Any,
     detail: Any,
     obs_point_prefix: Optional[str] = None,
@@ -88,10 +88,10 @@ def nest2_hurrywave_in_sfincsmodel(
         for st in ddd.station_name.values
     ]
 
-    # Build required SnapWave boundary point names from the detail model's GDF.
+    # The name is the index with 4 leading zeros
     point_names: List[str] = [
-        f"{obs_point_prefix}_{row['name']}"
-        for _ind, row in detail.snapwave_boundary_conditions.gdf.iterrows()
+        f"{obs_point_prefix}_{str(ind + 1).zfill(4)}"
+        for ind, _row in detail.water_level.gdf.iterrows()
     ]
 
     times = pd.DatetimeIndex(ddd.point_hm0.coords["time"].values)

@@ -1,32 +1,36 @@
-"""Nest 2 script for nesting BEWARE within hydromt_hurrywave HurrywaveModel.
+"""Nest 2 script for nesting cht_sfincs SFINCS within hydromt_hurrywave HurrywaveModel.
 
 Reads wave parameter time series from the HurrywaveModel's hurrywave_his.nc output
-and sets them as wave boundary conditions on the detail BEWARE model.
+and sets them as SnapWave boundary conditions on the detail SFINCS model (cht_sfincs API).
 """
 
 import os
 from typing import Any, Optional
 
+import numpy as np
 import pandas as pd
 import xarray as xr
 
 
-def nest2_beware_in_hurrywave(
+def nest2_sfincscht_in_hurrywave(
     overall: Any,
     detail: Any,
+    obs_point_prefix: Optional[str] = None,
     output_path: Optional[str] = None,
     output_file: Optional[str] = None,
     bc_path: Optional[str] = None,
     **kwargs,
 ) -> None:
-    """Nest a BEWARE model within a HurrywaveModel.
+    """Nest a cht_sfincs SFINCS model within a HurrywaveModel.
 
     Parameters
     ----------
     overall : hydromt_hurrywave.HurrywaveModel
         The coarse HurrywaveModel whose his output is read.
-    detail : BEWARE
-        The fine BEWARE model that receives wave boundary conditions.
+    detail : cht_sfincs.SFINCS
+        The fine SFINCS model that receives the SnapWave boundary conditions.
+    obs_point_prefix : str, optional
+        Prefix for observation point names.
     output_path : str, optional
         Directory containing the HurrywaveModel output files.
     output_file : str, optional
@@ -40,15 +44,17 @@ def nest2_beware_in_hurrywave(
         output_file = "hurrywave_his.nc"
 
     file_name = os.path.join(output_path, output_file)
+    print("Nesting in " + file_name)
 
+    # Open netcdf file
     ddd = xr.open_dataset(file_name)
     stations = ddd.station_name.values
     all_stations = [str(st.strip())[2:-1] for st in stations]
 
     point_names = []
-    if detail.wave_boundary_point:
-        for point in detail.wave_boundary_point:
-            point_names.append(detail.name + "_" + point.name)
+    if len(detail.snapwave.boundary_conditions.gdf) > 0:
+        for ind, point in detail.snapwave.boundary_conditions.gdf.iterrows():
+            point_names.append(obs_point_prefix + "_" + point["name"])
     else:
         point_names = all_stations.copy()
 
@@ -61,19 +67,21 @@ def nest2_beware_in_hurrywave(
                 ireq.append(ist)
                 break
 
-    for ip, point in enumerate(detail.wave_boundary_point):
+    for ip, point in detail.snapwave.boundary_conditions.gdf.iterrows():
         hm0 = ddd.point_hm0.values[:, ireq[ip]]
         tp = ddd.point_tp.values[:, ireq[ip]]
         wavdir = ddd.point_wavdir.values[:, ireq[ip]]
         dirspr = ddd.point_dirspr.values[:, ireq[ip]]
+        dirspr = np.clip(dirspr, 4.0, 55.0)
+        tp = np.clip(tp, 1.0, 25.0)
 
         df = pd.DataFrame(index=times)
-        df.insert(0, "hm0", hm0)
+        df.insert(0, "hs", hm0)
         df.insert(1, "tp", tp)
-        df.insert(2, "wavdir", wavdir)
-        df.insert(3, "dirspr", dirspr)
+        df.insert(2, "wd", wavdir)
+        df.insert(3, "ds", dirspr)
 
-        point.data = df
+        detail.snapwave.boundary_conditions.gdf.loc[ip, "timeseries"] = df
 
     if bc_path is not None:
-        detail.write_wave_boundary_conditions(path=bc_path)
+        detail.snapwave.boundary_conditions.write_boundary_conditions_timeseries()

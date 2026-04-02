@@ -1,6 +1,6 @@
-"""Nest 1 script for nesting hydromt_sfincs SfincsModel within hydromt_hurrywave HurrywaveModel.
+"""Nest 1 script for nesting hydromt_sfincs SfincsModel within HurryWave.
 
-Adds observation points to the overall HurrywaveModel at the SnapWave boundary
+Adds observation points to the overall HurryWave model at the SnapWave boundary
 point locations of the detail SfincsModel.
 """
 
@@ -9,13 +9,13 @@ from typing import Any
 from pyproj import Transformer
 
 
-def nest1_sfincs_in_hurrywave(overall: Any, detail: Any) -> None:
-    """Add observation points to the overall HurrywaveModel at SfincsModel SnapWave boundary locations.
+def nest1_sfincs_in_hurrywavecht(overall: Any, detail: Any) -> None:
+    """Add observation points to the overall HurryWave model at SfincsModel SnapWave boundary locations.
 
     Parameters
     ----------
-    overall : hydromt_hurrywave.HurrywaveModel
-        The coarse HurrywaveModel that receives the new observation points.
+    overall : HurryWave
+        The coarse HurryWave model that receives the new observation points.
     detail : hydromt_sfincs.SfincsModel
         The fine SfincsModel whose SnapWave boundary points are used.
     """
@@ -35,4 +35,4 @@ def nest1_sfincs_in_hurrywave(overall: Any, detail: Any) -> None:
         x = point["geometry"].coords[0][0]
         y = point["geometry"].coords[0][1]
         x, y = transformer.transform(x, y)
-        overall.observation_points.add_point(x, y, name)
+        overall.observation_points_regular.add_point(x, y, name)

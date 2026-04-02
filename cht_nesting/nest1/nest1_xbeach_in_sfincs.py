@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-"""
-Nest 1 script for nesting XBeach within SFINCS.
+"""Nest 1 script for nesting XBeach within hydromt_sfincs SfincsModel.
 
-Adds observation points to the overall SFINCS model at the flow boundary point
+Adds observation points to the overall SfincsModel at the flow boundary point
 locations of the detail XBeach model.
 """
 
@@ -12,37 +10,21 @@ from pyproj import Transformer
 
 
 def nest1_xbeach_in_sfincs(overall: Any, detail: Any) -> None:
-    """Add observation points to the overall SFINCS model at XBeach flow boundary locations.
-
-    Iterates over the flow boundary points of *detail*, transforms their
-    coordinates to the CRS of *overall*, and adds them as observation points.
-
-    Each point is named ``<detail.name>_<index>`` where *index* is the
-    one-based, zero-padded sequential index.
+    """Add observation points to the overall SfincsModel at XBeach flow boundary locations.
 
     Parameters
     ----------
-    overall : SFINCS
-        The coarse SFINCS model that receives the new observation points.
-        Must expose:
-
-        * ``crs`` — :class:`~pyproj.CRS` of the model.
-        * ``observation_points.add_point(x, y, name)`` — adds a point.
-
+    overall : hydromt_sfincs.SfincsModel
+        The coarse SfincsModel that receives the new observation points.
     detail : XBeach
-        The fine XBeach model whose flow boundary points are used as
-        observation locations.  Must expose:
-
-        * ``crs`` — :class:`~pyproj.CRS` of the model.
-        * ``name`` — prefix string for observation point names.
-        * ``flow_boundary_point`` — iterable of point objects with a
-          ``geometry`` attribute (Shapely ``Point``).
-
-    Returns
-    -------
-    None
+        The fine XBeach model whose flow boundary points are used.
     """
-    transformer = Transformer.from_crs(detail.crs, overall.crs, always_xy=True)
+    if overall.config.get("qtrfile") is not None:
+        overall_crs = overall.quadtree_grid.crs
+    else:
+        overall_crs = overall.grid.crs
+
+    transformer = Transformer.from_crs(detail.crs, overall_crs, always_xy=True)
 
     for ind, point in enumerate(detail.flow_boundary_point):
         name = f"{detail.name}_{str(ind + 1).zfill(4)}"

@@ -1,7 +1,7 @@
-"""Nest 1 script for nesting hydromt_sfincs SfincsModel within Delft3D-FM.
+"""Nest 1 script for nesting cht_sfincs SFINCS within Delft3D-FM.
 
 Adds observation points to the overall Delft3D-FM model at the water level
-boundary point locations of the detail SfincsModel.
+boundary point locations of the detail SFINCS model (cht_sfincs API).
 """
 
 from typing import Any
@@ -9,22 +9,18 @@ from typing import Any
 from pyproj import Transformer
 
 
-def nest1_sfincs_in_delft3dfm(overall: Any, detail: Any) -> None:
-    """Add observation points to the overall Delft3D-FM model at SfincsModel boundary locations.
+def nest1_sfincscht_in_delft3dfm(overall: Any, detail: Any) -> None:
+    """Add observation points to the overall Delft3D-FM model at SFINCS boundary locations.
 
     Parameters
     ----------
     overall : Delft3DFM
         The coarse Delft3D-FM model that receives the new observation points.
-    detail : hydromt_sfincs.SfincsModel
-        The fine SfincsModel whose boundary points are used.
+    detail : cht_sfincs.SFINCS
+        The fine SFINCS model whose boundary points are used.
     """
     overall_crs = overall.crs
-
-    if detail.config.get("qtrfile") is not None:
-        detail_crs = detail.quadtree_grid.crs
-    else:
-        detail_crs = detail.grid.crs
+    detail_crs = detail.crs
 
     transformer = Transformer.from_crs(detail_crs, overall_crs, always_xy=True)
 
@@ -38,7 +34,7 @@ def nest1_sfincs_in_delft3dfm(overall: Any, detail: Any) -> None:
             overall_degrees_west = True
 
     overall_names = overall.list_observation_names()
-    boundary_gdf = detail.water_level.gdf
+    boundary_gdf = detail.boundary_conditions.gdf
 
     for ind, row in boundary_gdf.iterrows():
         name = f"{detail.name}_{str(ind + 1).zfill(4)}"

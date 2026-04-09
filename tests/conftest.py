@@ -150,7 +150,7 @@ def beware_his_path(tmp_path, sim_times) -> Path:
     x_off = np.array([500.0, 4500.0])
     y_off = np.array([1000.0, 3000.0])
 
-    tref = pd.Timestamp("1970-01-01", tz="UTC")
+    tref = pd.Timestamp("1970-01-01")
     tsec = ((sim_times - tref) / pd.Timedelta("1s")).values.astype(np.int64)
 
     ds = xr.Dataset(

@@ -31,7 +31,7 @@ dependencies = [
 dynamic = ["version"]
 
 [project.optional-dependencies]
-tests = ["pytest", "pytest-cov"]
+tests = ["pytest", "pytest-cov", "hydromt_sfincs"]
 
 [tool.setuptools]
 zip-safe = true

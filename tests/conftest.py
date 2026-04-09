@@ -24,12 +24,16 @@ N_POINTS = 2
 N_TIMES = 12
 EPSG = 32633  # UTM 33N — matches hydromt_sfincs test convention
 
-# Boundary point names on the detail model
+# Boundary point names on the detail model (stored in GeoDataFrame "name" column)
 DETAIL_POINT_NAMES = ["bnd_0001", "bnd_0002"]
 
-# Corresponding station names in the overall model output files
-# (obs_prefix + "_" + point_name)
-OVERALL_STATION_NAMES = [f"{OBS_PREFIX}_{n}" for n in DETAIL_POINT_NAMES]
+# Corresponding station names in the overall model output files.
+# The implementation builds names as <prefix>_<zfill4(gdf_index + 1)>,
+# so for a 0-based integer GDF index the first two points become
+# "nest_0001" and "nest_0002".
+OVERALL_STATION_NAMES = [
+    f"{OBS_PREFIX}_{str(i + 1).zfill(4)}" for i in range(N_POINTS)
+]
 
 
 # ---------------------------------------------------------------------------

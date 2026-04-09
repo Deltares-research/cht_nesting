@@ -68,6 +68,8 @@ def nest2_sfincs_in_delft3dfm(
     """
     if not output_file:
         output_file = "flow_his.nc"
+    if not obs_point_prefix:
+        obs_point_prefix = detail.name
 
     # The name is the index with 4 leading zeros
     point_names: List[str] = [

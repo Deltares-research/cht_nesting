@@ -28,7 +28,6 @@ import numpy as np
 import pandas as pd
 import pytest
 from conftest import (
-    DETAIL_POINT_NAMES,
     N_POINTS,
     N_TIMES,
     OBS_PREFIX,
@@ -307,7 +306,7 @@ class TestNest2SfincsInDelft3dfm:
             if call_kwargs.kwargs.get("name_list") is not None
             else call_kwargs.args[0]
         )
-        expected = [f"{OBS_PREFIX}_{n}" for n in DETAIL_POINT_NAMES]
+        expected = [f"{OBS_PREFIX}_{str(i + 1).zfill(4)}" for i in range(N_POINTS)]
         assert name_list == expected
 
 

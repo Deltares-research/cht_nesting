@@ -67,10 +67,17 @@ def nest2_xbeach_in_sfincs(
 
     ireq: List[int] = []
     for pname in point_names:
+        matched = False
         for ist, st in enumerate(all_stations):
             if pname.lower() == st.lower():
                 ireq.append(ist)
+                matched = True
                 break
+        if not matched:
+            raise ValueError(
+                f"Observation point '{pname}' not found in '{fn_his}'. "
+                f"Available stations: {all_stations}"
+            )
 
     times = pd.DatetimeIndex(ds["time"].values)
     bzs = pd.DataFrame(ds["point_zs"].values[:, ireq], index=times)

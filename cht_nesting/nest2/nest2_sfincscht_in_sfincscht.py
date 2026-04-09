@@ -122,10 +122,11 @@ def nest2_sfincscht_in_sfincscht(
     # zs_maximum for clustering
     if return_maximum:
         zmax = -999.0
-        for icol, point in detail.boundary_conditions.gdf.iterrows():
-            zx = point.data.max()
+        for icol, _point in detail.boundary_conditions.gdf.iterrows():
+            ts_data = detail.boundary_conditions.gdf.loc[icol, "timeseries"]
+            zx = ts_data["wl"].max()
             if zx > zmax:
-                zs = point.data
+                zs = ts_data["wl"]
                 zmax = zx
         return zs
     else:

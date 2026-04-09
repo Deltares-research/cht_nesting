@@ -2,11 +2,11 @@
 Shared pytest fixtures for cht_nesting tests.
 
 Synthetic model data is generated in-memory so no external files are required.
-Detail models are mocked so no hydromt_sfincs installation is needed.
+Detail model fixtures require hydromt_sfincs; tests are skipped if not installed.
 """
 
 from pathlib import Path
-from unittest.mock import MagicMock, PropertyMock
+from unittest.mock import MagicMock
 
 import geopandas as gpd
 import numpy as np
@@ -15,6 +15,17 @@ import pytest
 import xarray as xr
 from pyproj import CRS
 from shapely.geometry import Point
+
+try:
+    from hydromt_sfincs import SfincsModel  # noqa: F401
+
+    HAS_HYDROMT_SFINCS = True
+except ImportError:
+    HAS_HYDROMT_SFINCS = False
+
+requires_hydromt_sfincs = pytest.mark.skipif(
+    not HAS_HYDROMT_SFINCS, reason="hydromt_sfincs not installed"
+)
 
 # ---------------------------------------------------------------------------
 # Shared constants
@@ -169,67 +180,74 @@ def beware_his_path(tmp_path, sim_times) -> Path:
 
 
 # ---------------------------------------------------------------------------
-# Detail model fixtures (mocked — no hydromt_sfincs dependency)
+# Detail SfincsModel fixtures (require hydromt_sfincs)
 # ---------------------------------------------------------------------------
-
-
-def _make_detail_mock(tmp_path, name, boundary_gdf):
-    """Create a mock detail SfincsModel-like object with the attributes
-    that the nest2 functions actually use."""
-    root = tmp_path / name
-    root.mkdir(exist_ok=True)
-
-    mock = MagicMock(name=name)
-    mock.__class__ = type("SfincsModel", (), {})  # _resolve_type returns "sfincsmodel"
-    mock.__class__.__name__ = "SfincsModel"
-    mock.root.path = root
-    mock.name = "nest"
-    mock.crs = CRS.from_epsg(EPSG)
-
-    # Bounding box (used by BEWARE nesting to find nearby stations)
-    type(mock).bounds = PropertyMock(return_value=(0.0, 0.0, 5000.0, 5000.0))
-
-    # Boundary locations GeoDataFrame
-    mock.water_level.get_locations.return_value = boundary_gdf
-    mock.snapwave_boundary_conditions.get_locations.return_value = boundary_gdf
-
-    # set_timeseries stores the data so tests can inspect it
-    def _store_wl_timeseries(ds):
-        mock.water_level.data = ds
-
-    def _store_sw_timeseries(ds):
-        mock.snapwave_boundary_conditions.data = ds
-
-    mock.water_level.set_timeseries.side_effect = _store_wl_timeseries
-    mock.snapwave_boundary_conditions.set_timeseries.side_effect = _store_sw_timeseries
-
-    # Initialize data to None
-    mock.water_level.data = None
-    mock.snapwave_boundary_conditions.data = None
-
-    return mock
 
 
 @pytest.fixture
 def detail_model_wl(tmp_path):
-    """Mock SfincsModel with two water level boundary points."""
+    """
+    A minimal hydromt_sfincs ``SfincsModel`` with two water level boundary
+    points pre-set.
+    """
+    pytest.importorskip("hydromt_sfincs")
+    from hydromt_sfincs import SfincsModel
+
+    root = tmp_path / "detail_wl"
+    root.mkdir()
+    mod = SfincsModel(root=str(root), mode="w+")
+
+    mod.grid.create(
+        x0=0.0,
+        y0=0.0,
+        dx=1000.0,
+        dy=1000.0,
+        nmax=5,
+        mmax=5,
+        rotation=0.0,
+        epsg=EPSG,
+    )
+
     gdf = gpd.GeoDataFrame(
         {"name": DETAIL_POINT_NAMES},
         geometry=[Point(0.0, 1000.0), Point(0.0, 3000.0)],
         crs=f"EPSG:{EPSG}",
     )
-    return _make_detail_mock(tmp_path, "detail_wl", gdf)
+    mod.water_level.set_locations(gdf)
+    return mod
 
 
 @pytest.fixture
 def detail_model_sw(tmp_path):
-    """Mock SfincsModel with two SnapWave boundary points."""
+    """
+    A minimal hydromt_sfincs ``SfincsModel`` with two SnapWave boundary
+    points pre-set.
+    """
+    pytest.importorskip("hydromt_sfincs")
+    from hydromt_sfincs import SfincsModel
+
+    root = tmp_path / "detail_sw"
+    root.mkdir()
+    mod = SfincsModel(root=str(root), mode="w+")
+
+    mod.grid.create(
+        x0=0.0,
+        y0=0.0,
+        dx=1000.0,
+        dy=1000.0,
+        nmax=5,
+        mmax=5,
+        rotation=0.0,
+        epsg=EPSG,
+    )
+
     gdf = gpd.GeoDataFrame(
         {"name": DETAIL_POINT_NAMES},
         geometry=[Point(0.0, 1000.0), Point(0.0, 3000.0)],
         crs=f"EPSG:{EPSG}",
     )
-    return _make_detail_mock(tmp_path, "detail_sw", gdf)
+    mod.snapwave_boundary_conditions.set_locations(gdf)
+    return mod
 
 
 # ---------------------------------------------------------------------------

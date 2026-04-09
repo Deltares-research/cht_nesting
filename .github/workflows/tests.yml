@@ -44,6 +44,7 @@ jobs:
       - name: Install test dependencies
         run: |
           conda run -n cht_nesting pip install -e ".[tests]"
+          conda run -n cht_nesting pip install git+https://github.com/Deltares-research/hydromt_sfincs.git@main
 
       - name: Test with pytest
         run: |

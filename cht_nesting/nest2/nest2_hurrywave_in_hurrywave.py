@@ -8,7 +8,6 @@ import os
 from typing import Any, List, Optional
 
 import numpy as np
-import pandas as pd
 import xarray as xr
 
 
@@ -68,8 +67,7 @@ def nest2_hurrywave_in_hurrywave(
 
     # Build required point names
     point_names: List[str] = [
-        f"{obs_point_prefix}_{row['name']}"
-        for _, row in bnd_gdf.iterrows()
+        f"{obs_point_prefix}_{row['name']}" for _, row in bnd_gdf.iterrows()
     ]
 
     # Map point names to station indices

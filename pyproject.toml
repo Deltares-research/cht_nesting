@@ -48,3 +48,4 @@ include = ["cht_nesting*"]
 [tool.pytest.ini_options]
 addopts = "--cov cht_nesting --cov-report xml"
 testpaths = ["tests"]
+pythonpath = ["tests"]

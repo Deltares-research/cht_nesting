@@ -31,9 +31,7 @@ DETAIL_POINT_NAMES = ["bnd_0001", "bnd_0002"]
 # The implementation builds names as <prefix>_<zfill4(gdf_index + 1)>,
 # so for a 0-based integer GDF index the first two points become
 # "nest_0001" and "nest_0002".
-OVERALL_STATION_NAMES = [
-    f"{OBS_PREFIX}_{str(i + 1).zfill(4)}" for i in range(N_POINTS)
-]
+OVERALL_STATION_NAMES = [f"{OBS_PREFIX}_{str(i + 1).zfill(4)}" for i in range(N_POINTS)]
 
 
 # ---------------------------------------------------------------------------

@@ -30,9 +30,6 @@ def nest2(
     The correct sub-function is selected automatically based on the class names
     of *overall* and *detail*.
 
-    The class name ``SfincsModel`` (from hydromt_sfincs) is mapped to type
-    ``"sfincs"``, while ``SFINCS`` (from cht_sfincs) is mapped to ``"sfincscht"``.
-
     Parameters
     ----------
     overall : Any
@@ -70,33 +67,26 @@ def nest2(
         The result of the nesting function.
     """
     # Overall can be a string, because we may not have the overall model as an object
-
     if isinstance(overall, str):
-        if overall == "sfincs":
-            # When passed as string "sfincs", assume hydromt-sfincs
+        if overall in ("sfincs", "hydromt_sfincs"):
             from hydromt_sfincs import SfincsModel
+
             overall = SfincsModel()
-        elif overall == "cht_sfincs":
-            from cht_sfincs import SFINCS
-            overall = SFINCS()
-        elif overall == "hydromt_sfincs":
-            from hydromt_sfincs import SfincsModel
-            overall = SfincsModel()
-        elif overall == "hurrywave" or overall == "hydromt_hurrywave":            
+        elif overall in ("hurrywave", "hydromt_hurrywave"):
             from hydromt_hurrywave import HurrywaveModel
+
             overall = HurrywaveModel()
-        elif overall == "cht_hurrywave":
-            # When passed as string "hurrywave", assume cht_hurrywave for backwards compat
-            from cht_hurrywave import HurryWave
-            overall = HurryWave()
         elif overall == "xbeach":
             from cht_xbeach import XBeach
+
             overall = XBeach()
         elif overall == "beware":
             from cht_beware import BEWARE
+
             overall = BEWARE()
         elif overall == "delft3dfm":
             from cht_delft3dfm import Delft3DFM
+
             overall = Delft3DFM()
 
     # Resolve types
@@ -132,84 +122,58 @@ def nest2(
     if overall_type == "delft3dfm":
         if detail_type == "delft3dfm":
             from .nest2_delft3dfm_in_delft3dfm import nest2_delft3dfm_in_delft3dfm
+
             nest2_fcn = nest2_delft3dfm_in_delft3dfm
-        elif detail_type == "sfincscht":
-            from .nest2_sfincscht_in_delft3dfm import nest2_sfincscht_in_delft3dfm
-            nest2_fcn = nest2_sfincscht_in_delft3dfm
         elif detail_type == "sfincs":
             from .nest2_sfincs_in_delft3dfm import nest2_sfincs_in_delft3dfm
+
             nest2_fcn = nest2_sfincs_in_delft3dfm
         elif detail_type == "beware":
             from .nest2_beware_in_delft3dfm import nest2_beware_in_delft3dfm
+
             nest2_fcn = nest2_beware_in_delft3dfm
 
     elif overall_type == "sfincs":
         if detail_type == "sfincs":
             from .nest2_sfincs_in_sfincs import nest2_sfincs_in_sfincs
+
             nest2_fcn = nest2_sfincs_in_sfincs
         elif detail_type == "xbeach":
             from .nest2_xbeach_in_sfincs import nest2_xbeach_in_sfincs
+
             nest2_fcn = nest2_xbeach_in_sfincs
         elif detail_type == "beware":
             from .nest2_beware_in_sfincs import nest2_beware_in_sfincs
-            nest2_fcn = nest2_beware_in_sfincs
 
-    elif overall_type == "sfincscht":
-        if detail_type == "sfincscht":
-            from .nest2_sfincscht_in_sfincscht import nest2_sfincscht_in_sfincscht
-            nest2_fcn = nest2_sfincscht_in_sfincscht
-        elif detail_type == "sfincs":
-            # SfincsModel nested in cht_sfincs — use hydromt variant
-            from .nest2_sfincs_in_sfincs import nest2_sfincs_in_sfincs
-            nest2_fcn = nest2_sfincs_in_sfincs
-        elif detail_type == "xbeach":
-            from .nest2_xbeach_in_sfincscht import nest2_xbeach_in_sfincscht
-            nest2_fcn = nest2_xbeach_in_sfincscht
-        elif detail_type == "beware":
-            from .nest2_beware_in_sfincscht import nest2_beware_in_sfincscht
-            nest2_fcn = nest2_beware_in_sfincscht
+            nest2_fcn = nest2_beware_in_sfincs
 
     elif overall_type == "hurrywave":
         if detail_type == "hurrywave":
             from .nest2_hurrywave_in_hurrywave import nest2_hurrywave_in_hurrywave
+
             nest2_fcn = nest2_hurrywave_in_hurrywave
         elif detail_type == "xbeach":
             from .nest2_xbeach_in_hurrywave import nest2_xbeach_in_hurrywave
+
             nest2_fcn = nest2_xbeach_in_hurrywave
-        elif detail_type == "sfincscht":
-            from .nest2_sfincscht_in_hurrywave import nest2_sfincscht_in_hurrywave
-            nest2_fcn = nest2_sfincscht_in_hurrywave
         elif detail_type == "sfincs":
             from .nest2_sfincs_in_hurrywave import nest2_sfincs_in_hurrywave
+
             nest2_fcn = nest2_sfincs_in_hurrywave
         elif detail_type == "beware":
             from .nest2_beware_in_hurrywave import nest2_beware_in_hurrywave
+
             nest2_fcn = nest2_beware_in_hurrywave
 
-    elif overall_type == "hurrywavecht":
-        if detail_type == "hurrywavecht":
-            from .nest2_hurrywavecht_in_hurrywavecht import nest2_hurrywavecht_in_hurrywavecht
-            nest2_fcn = nest2_hurrywavecht_in_hurrywavecht
-        elif detail_type == "xbeach":
-            from .nest2_xbeach_in_hurrywavecht import nest2_xbeach_in_hurrywavecht
-            nest2_fcn = nest2_xbeach_in_hurrywavecht
-        elif detail_type == "sfincscht":
-            from .nest2_sfincscht_in_hurrywavecht import nest2_sfincscht_in_hurrywavecht
-            nest2_fcn = nest2_sfincscht_in_hurrywavecht
-        elif detail_type == "sfincs":
-            from .nest2_sfincs_in_hurrywavecht import nest2_sfincs_in_hurrywavecht
-            nest2_fcn = nest2_sfincs_in_hurrywavecht
-        elif detail_type == "beware":
-            from .nest2_beware_in_hurrywavecht import nest2_beware_in_hurrywavecht
-            nest2_fcn = nest2_beware_in_hurrywavecht
-
     elif overall_type == "beware":
-        if detail_type == "sfincscht":
-            from .nest2_sfincscht_in_beware import nest2_sfincscht_in_beware
-            nest2_fcn = nest2_sfincscht_in_beware
-        elif detail_type == "sfincs":
+        if detail_type == "sfincs":
             from .nest2_beware_in_sfincs import nest2_beware_in_sfincs
+
             nest2_fcn = nest2_beware_in_sfincs
+
+    if nest2_fcn is None:
+        print("Nesting step 2 not implemented for this combination of models")
+        return False
 
     output = nest2_fcn(overall, detail, **kwargs)
 
@@ -224,11 +188,7 @@ def _resolve_type(model: Any) -> str:
     class_name = model.__class__.__name__
     if class_name == "SfincsModel":
         return "sfincs"
-    elif class_name == "SFINCS":
-        return "sfincscht"
     elif class_name == "HurrywaveModel":
         return "hurrywave"
-    elif class_name == "HurryWave":
-        return "hurrywavecht"
     else:
         return class_name.lower()

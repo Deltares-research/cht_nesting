@@ -11,7 +11,7 @@ from typing import Any, Optional
 import numpy as np
 import pandas as pd
 import xarray as xr
-from cht_physics.deshoal import deshoal
+from cht_utils.physics.deshoal import deshoal
 from scipy import interpolate
 
 

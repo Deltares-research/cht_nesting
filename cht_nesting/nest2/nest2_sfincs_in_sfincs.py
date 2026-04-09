@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 from cht_tide.tide_predict import predict
-from cht_utils.deltares_ini import IniStruct
+from cht_utils.fileio.deltares_ini import IniStruct
 from cht_utils.physics.waves import split_waves_guza
 
 

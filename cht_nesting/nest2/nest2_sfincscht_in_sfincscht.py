@@ -10,7 +10,7 @@ from typing import Any, Optional
 
 import pandas as pd
 from cht_tide.tide_predict import predict
-from cht_utils.deltares_ini import IniStruct
+from cht_utils.fileio.deltares_ini import IniStruct
 from cht_utils.physics.waves import split_waves_guza
 
 

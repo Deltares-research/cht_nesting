@@ -123,7 +123,7 @@ def nest2_sfincscht_in_sfincscht(
     if return_maximum:
         zmax = -999.0
         for icol, _point in detail.boundary_conditions.gdf.iterrows():
-            ts_data = detail.boundary_conditions.gdf.loc[icol, "timeseries"]
+            ts_data = _point["timeseries"]
             zx = ts_data["wl"].max()
             if zx > zmax:
                 zs = ts_data["wl"]

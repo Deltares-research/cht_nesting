@@ -220,7 +220,7 @@ class TestNest2SfincsInSfincs:
 
 
 class TestNest2SfincsInDelft3dfm:
-    """Tests for overall=Delft3DFM, detail=SfincsModel (SfincsModel nested in Delft3DFM)."""
+    """Tests for overall=Delft3DFM, detail=SfincsModel (SFINCS detail nested in Delft3DFM overall)."""
 
     def _make_bzs(self, sim_times: pd.DatetimeIndex) -> pd.DataFrame:
         """Synthetic water level DataFrame mimicking read_timeseries_output output."""

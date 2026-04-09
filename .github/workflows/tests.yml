@@ -24,6 +24,7 @@ jobs:
           - python-version: "3.12"
             os: ubuntu-latest
             coverage: true
+            install_hydromt: true
     steps:
       - uses: actions/checkout@v3
         with:
@@ -44,7 +45,12 @@ jobs:
       - name: Install test dependencies
         run: |
           conda run -n cht_nesting pip install -e ".[tests]"
+
+      - name: Install hydromt_sfincs (full test suite)
+        if: matrix.install_hydromt == true
+        run: |
           conda run -n cht_nesting pip install git+https://github.com/Deltares-research/hydromt_sfincs.git@main
+        timeout-minutes: 10
 
       - name: Test with pytest
         run: |

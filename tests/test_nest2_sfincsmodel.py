@@ -4,10 +4,10 @@ Tests for nest2 functions that use a hydromt_sfincs SfincsModel as the detail mo
 
 Covered combinations
 --------------------
-* nest2_sfincsmodel_in_sfincsmodel  — overall=SfincsModel,  detail=SfincsModel
-* nest2_delft3dfm_in_sfincsmodel    — overall=Delft3DFM,    detail=SfincsModel
-* nest2_hurrywave_in_sfincsmodel    — overall=HurryWave,    detail=SfincsModel
-* nest2_beware_in_sfincsmodel       — overall=BEWARE,       detail=SfincsModel
+* nest2_sfincs_in_sfincs       — overall=SfincsModel,  detail=SfincsModel
+* nest2_sfincs_in_delft3dfm    — overall=Delft3DFM,    detail=SfincsModel
+* nest2_sfincs_in_hurrywave    — overall=HurryWave,    detail=SfincsModel
+* nest2_beware_in_sfincs       — overall=BEWARE,       detail=SfincsModel
 
 Each combination is tested for:
   - Basic "happy path" (BCs are set, no exception raised)
@@ -38,16 +38,10 @@ from conftest import (
     make_mock_overall_sfincs,
 )
 
-from cht_nesting.nest2.nest2_beware_in_sfincsmodel import nest2_beware_in_sfincsmodel
-from cht_nesting.nest2.nest2_delft3dfm_in_sfincsmodel import (
-    nest2_delft3dfm_in_sfincsmodel,
-)
-from cht_nesting.nest2.nest2_hurrywave_in_sfincsmodel import (
-    nest2_hurrywave_in_sfincsmodel,
-)
-from cht_nesting.nest2.nest2_sfincsmodel_in_sfincsmodel import (
-    nest2_sfincsmodel_in_sfincsmodel,
-)
+from cht_nesting.nest2.nest2_beware_in_sfincs import nest2_beware_in_sfincs
+from cht_nesting.nest2.nest2_sfincs_in_delft3dfm import nest2_sfincs_in_delft3dfm
+from cht_nesting.nest2.nest2_sfincs_in_hurrywave import nest2_sfincs_in_hurrywave
+from cht_nesting.nest2.nest2_sfincs_in_sfincs import nest2_sfincs_in_sfincs
 
 # ---------------------------------------------------------------------------
 # Assertion helpers
@@ -93,11 +87,11 @@ def _assert_sw_timeseries_set(
 
 
 # ---------------------------------------------------------------------------
-# nest2_sfincsmodel_in_sfincsmodel
+# nest2_sfincs_in_sfincs
 # ---------------------------------------------------------------------------
 
 
-class TestNest2SfincsmodelInSfincsmodel:
+class TestNest2SfincsInSfincs:
     """Tests for overall=SfincsModel, detail=SfincsModel."""
 
     def test_basic(
@@ -107,7 +101,7 @@ class TestNest2SfincsmodelInSfincsmodel:
     ) -> None:
         """Basic nesting sets water level BCs without error."""
         overall = make_mock_overall_sfincs(sfincs_his_path.parent)
-        result = nest2_sfincsmodel_in_sfincsmodel(
+        result = nest2_sfincs_in_sfincs(
             overall,
             detail_model_wl,
             obs_point_prefix=OBS_PREFIX,
@@ -126,7 +120,7 @@ class TestNest2SfincsmodelInSfincsmodel:
         """Boundary water level correction is applied uniformly to all time series."""
         overall = make_mock_overall_sfincs(sfincs_his_path.parent)
         correction = 0.25
-        nest2_sfincsmodel_in_sfincsmodel(
+        nest2_sfincs_in_sfincs(
             overall,
             detail_model_wl,
             obs_point_prefix=OBS_PREFIX,
@@ -143,7 +137,7 @@ class TestNest2SfincsmodelInSfincsmodel:
     ) -> None:
         """return_maximum=True returns a pd.Series of peak water levels."""
         overall = make_mock_overall_sfincs(sfincs_his_path.parent)
-        result = nest2_sfincsmodel_in_sfincsmodel(
+        result = nest2_sfincs_in_sfincs(
             overall,
             detail_model_wl,
             obs_point_prefix=OBS_PREFIX,
@@ -162,7 +156,7 @@ class TestNest2SfincsmodelInSfincsmodel:
     ) -> None:
         """filter_incoming=True runs without error (u/v=0 → no distortion)."""
         overall = make_mock_overall_sfincs(sfincs_his_path.parent)
-        nest2_sfincsmodel_in_sfincsmodel(
+        nest2_sfincs_in_sfincs(
             overall,
             detail_model_wl,
             obs_point_prefix=OBS_PREFIX,
@@ -179,7 +173,7 @@ class TestNest2SfincsmodelInSfincsmodel:
     ) -> None:
         """Passing bc_path calls detail.water_level.write() without error."""
         overall = make_mock_overall_sfincs(sfincs_his_path.parent)
-        nest2_sfincsmodel_in_sfincsmodel(
+        nest2_sfincs_in_sfincs(
             overall,
             detail_model_wl,
             obs_point_prefix=OBS_PREFIX,
@@ -196,7 +190,7 @@ class TestNest2SfincsmodelInSfincsmodel:
         """ValueError is raised when an observation point is missing from the his-file."""
         overall = make_mock_overall_sfincs(sfincs_his_path.parent)
         with pytest.raises(ValueError, match="not found"):
-            nest2_sfincsmodel_in_sfincsmodel(
+            nest2_sfincs_in_sfincs(
                 overall,
                 detail_model_wl,
                 obs_point_prefix="wrong_prefix",
@@ -212,7 +206,7 @@ class TestNest2SfincsmodelInSfincsmodel:
         overall = make_mock_overall_sfincs(sfincs_his_path.parent)
         # overall.root.path must be a Path (or str) pointing at the output dir
         overall.root.path = sfincs_his_path.parent
-        nest2_sfincsmodel_in_sfincsmodel(
+        nest2_sfincs_in_sfincs(
             overall,
             detail_model_wl,
             obs_point_prefix=OBS_PREFIX,
@@ -221,11 +215,11 @@ class TestNest2SfincsmodelInSfincsmodel:
 
 
 # ---------------------------------------------------------------------------
-# nest2_delft3dfm_in_sfincsmodel
+# nest2_sfincs_in_delft3dfm
 # ---------------------------------------------------------------------------
 
 
-class TestNest2SfincsmodelInDelft3dfm:
+class TestNest2SfincsInDelft3dfm:
     """Tests for overall=Delft3DFM, detail=SfincsModel (SfincsModel nested in Delft3DFM)."""
 
     def _make_bzs(self, sim_times: pd.DatetimeIndex) -> pd.DataFrame:
@@ -243,7 +237,7 @@ class TestNest2SfincsmodelInDelft3dfm:
         """Basic nesting sets water level BCs without error."""
         bzs = self._make_bzs(sim_times)
         overall = make_mock_delft3dfm(tmp_path, bzs)
-        nest2_delft3dfm_in_sfincsmodel(
+        nest2_sfincs_in_delft3dfm(
             overall,
             detail_model_wl,
             obs_point_prefix=OBS_PREFIX,
@@ -261,7 +255,7 @@ class TestNest2SfincsmodelInDelft3dfm:
         bzs = self._make_bzs(sim_times)
         overall = make_mock_delft3dfm(tmp_path, bzs)
         correction = -0.10
-        nest2_delft3dfm_in_sfincsmodel(
+        nest2_sfincs_in_delft3dfm(
             overall,
             detail_model_wl,
             obs_point_prefix=OBS_PREFIX,
@@ -282,7 +276,7 @@ class TestNest2SfincsmodelInDelft3dfm:
         """Passing bc_path calls detail.water_level.write() without error."""
         bzs = self._make_bzs(sim_times)
         overall = make_mock_delft3dfm(tmp_path, bzs)
-        nest2_delft3dfm_in_sfincsmodel(
+        nest2_sfincs_in_delft3dfm(
             overall,
             detail_model_wl,
             obs_point_prefix=OBS_PREFIX,
@@ -300,7 +294,7 @@ class TestNest2SfincsmodelInDelft3dfm:
         """read_timeseries_output is called with the expected station name list."""
         bzs = self._make_bzs(sim_times)
         overall = make_mock_delft3dfm(tmp_path, bzs)
-        nest2_delft3dfm_in_sfincsmodel(
+        nest2_sfincs_in_delft3dfm(
             overall,
             detail_model_wl,
             obs_point_prefix=OBS_PREFIX,
@@ -318,11 +312,11 @@ class TestNest2SfincsmodelInDelft3dfm:
 
 
 # ---------------------------------------------------------------------------
-# nest2_hurrywave_in_sfincsmodel
+# nest2_sfincs_in_hurrywave
 # ---------------------------------------------------------------------------
 
 
-class TestNest2SfincsmodelInHurrywave:
+class TestNest2SfincsInHurrywave:
     """Tests for overall=HurryWave, detail=SfincsModel (SfincsModel nested in HurryWave)."""
 
     def test_basic(
@@ -332,7 +326,7 @@ class TestNest2SfincsmodelInHurrywave:
     ) -> None:
         """Basic nesting sets SnapWave BCs without error."""
         overall = make_mock_hurrywave(hurrywave_his_path.parent)
-        nest2_hurrywave_in_sfincsmodel(
+        nest2_sfincs_in_hurrywave(
             overall,
             detail_model_sw,
             obs_point_prefix=OBS_PREFIX,
@@ -347,7 +341,7 @@ class TestNest2SfincsmodelInHurrywave:
     ) -> None:
         """Wave parameter values in the BCs match the fixture constants."""
         overall = make_mock_hurrywave(hurrywave_his_path.parent)
-        nest2_hurrywave_in_sfincsmodel(
+        nest2_sfincs_in_hurrywave(
             overall,
             detail_model_sw,
             obs_point_prefix=OBS_PREFIX,
@@ -367,7 +361,7 @@ class TestNest2SfincsmodelInHurrywave:
         """output_path defaults to overall.path."""
         overall = make_mock_hurrywave(hurrywave_his_path.parent)
         overall.path = str(hurrywave_his_path.parent)
-        nest2_hurrywave_in_sfincsmodel(
+        nest2_sfincs_in_hurrywave(
             overall,
             detail_model_sw,
             obs_point_prefix=OBS_PREFIX,
@@ -382,7 +376,7 @@ class TestNest2SfincsmodelInHurrywave:
         """ValueError is raised when an observation point is missing from the his-file."""
         overall = make_mock_hurrywave(hurrywave_his_path.parent)
         with pytest.raises(ValueError, match="not found"):
-            nest2_hurrywave_in_sfincsmodel(
+            nest2_sfincs_in_hurrywave(
                 overall,
                 detail_model_sw,
                 obs_point_prefix="wrong_prefix",
@@ -397,7 +391,7 @@ class TestNest2SfincsmodelInHurrywave:
     ) -> None:
         """Passing bc_path calls detail.snapwave_boundary_conditions.write()."""
         overall = make_mock_hurrywave(hurrywave_his_path.parent)
-        nest2_hurrywave_in_sfincsmodel(
+        nest2_sfincs_in_hurrywave(
             overall,
             detail_model_sw,
             obs_point_prefix=OBS_PREFIX,
@@ -408,11 +402,11 @@ class TestNest2SfincsmodelInHurrywave:
 
 
 # ---------------------------------------------------------------------------
-# nest2_beware_in_sfincsmodel
+# nest2_beware_in_sfincs
 # ---------------------------------------------------------------------------
 
 
-class TestNest2SfincsmodelInBeware:
+class TestNest2BewareInSfincs:
     """Tests for overall=BEWARE, detail=SfincsModel (SfincsModel nested in BEWARE)."""
 
     def test_basic(
@@ -422,7 +416,7 @@ class TestNest2SfincsmodelInBeware:
     ) -> None:
         """Basic nesting sets water level BCs without error."""
         overall = make_mock_beware(beware_his_path.parent)
-        nest2_beware_in_sfincsmodel(
+        nest2_beware_in_sfincs(
             overall,
             detail_model_wl,
             output_path=str(beware_his_path.parent),
@@ -441,7 +435,7 @@ class TestNest2SfincsmodelInBeware:
         """
         overall = make_mock_beware(beware_his_path.parent)
         correction = 0.3
-        nest2_beware_in_sfincsmodel(
+        nest2_beware_in_sfincs(
             overall,
             detail_model_wl,
             output_path=str(beware_his_path.parent),
@@ -458,7 +452,7 @@ class TestNest2SfincsmodelInBeware:
         """output_path defaults to overall.path."""
         overall = make_mock_beware(beware_his_path.parent)
         overall.path = str(beware_his_path.parent)
-        nest2_beware_in_sfincsmodel(
+        nest2_beware_in_sfincs(
             overall,
             detail_model_wl,
         )
@@ -472,7 +466,7 @@ class TestNest2SfincsmodelInBeware:
         """NotImplementedError is raised when option != 'flow'."""
         overall = make_mock_beware(beware_his_path.parent)
         with pytest.raises(NotImplementedError):
-            nest2_beware_in_sfincsmodel(
+            nest2_beware_in_sfincs(
                 overall,
                 detail_model_wl,
                 output_path=str(beware_his_path.parent),
@@ -494,7 +488,7 @@ class TestNest2SfincsmodelInBeware:
             property(lambda self: (1_000_000.0, 1_000_000.0, 2_000_000.0, 2_000_000.0)),
         )
         with pytest.raises(ValueError, match="No BEWARE output locations"):
-            nest2_beware_in_sfincsmodel(
+            nest2_beware_in_sfincs(
                 overall,
                 detail_model_wl,
                 output_path=str(beware_his_path.parent),
@@ -508,7 +502,7 @@ class TestNest2SfincsmodelInBeware:
     ) -> None:
         """Passing bc_path calls detail.water_level.write() without error."""
         overall = make_mock_beware(beware_his_path.parent)
-        nest2_beware_in_sfincsmodel(
+        nest2_beware_in_sfincs(
             overall,
             detail_model_wl,
             output_path=str(beware_his_path.parent),

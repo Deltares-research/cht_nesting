@@ -17,7 +17,7 @@ def nest2_beware_in_hurrywave(
     output_path: Optional[str] = None,
     output_file: Optional[str] = None,
     bc_path: Optional[str] = None,
-    **kwargs,
+    **kwargs: Any,
 ) -> None:
     """Nest a BEWARE model within a HurrywaveModel.
 
@@ -48,7 +48,7 @@ def nest2_beware_in_hurrywave(
     point_names = []
     if detail.wave_boundary_point:
         for point in detail.wave_boundary_point:
-            point_names.append(detail.name + "_" + point.name)
+            point_names.append(f"{detail.name}_{point.name}")
     else:
         point_names = all_stations.copy()
 

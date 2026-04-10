@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Nest 1 script for nesting XBeach within Delft3D-FM.
+"""Nest 1 script for nesting XBeach within Delft3D-FM.
 
 Adds observation points to the overall Delft3D-FM model at the flow boundary
 point locations of the detail XBeach model.

@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Sep  3 13:40:56 2021
+"""Nest 2 script for nesting BEWARE within Delft3D-FM.
 
-This module defines the nest2_beware_in_delft3dfm function for handling nesting of BEWARE models within Delft3DFM models.
+Reads water level and wave time series from the Delft3D-FM model output
+and sets them as boundary conditions on the detail BEWARE model.
 """
 
 import os
@@ -20,27 +19,44 @@ def nest2_beware_in_delft3dfm(
     boundary_water_level_correction: float = 0,
     option: Optional[str] = None,
     bc_path: Optional[str] = None,
-    **kwargs,
+    **kwargs: Any,
 ) -> None:
-    """
-    Nest a BEWARE model within a Delft3DFM model.
+    """Nest a BEWARE model within a Delft3DFM model.
 
-    Parameters:
-    overall (Any): The overall Delft3DFM model.
-    detail (Any): The detailed BEWARE model.
-    output_path (Optional[str]): The path to the output files. Default is None.
-    output_file (Optional[str]): The name of the output file. Default is None.
-    boundary_water_level_correction (float): The correction to apply to the boundary water levels. Default is 0.
-    option (Optional[str]): The option for nesting ("flow" or "wave"). Default is None.
-    bc_path (Optional[str]): The path to the boundary conditions files. Default is None.
-    **kwargs: Additional keyword arguments.
+    Reads water level (flow) or wave parameter (wave) time series from the
+    Delft3D-FM output and sets them as boundary conditions on the detail
+    BEWARE model.
+
+    Parameters
+    ----------
+    overall : Delft3DFM
+        The coarse Delft3D-FM model.
+    detail : BEWARE
+        The fine BEWARE model that receives boundary conditions.
+    output_path : str, optional
+        Directory containing the Delft3D-FM output files.
+    output_file : str, optional
+        Name of the output file. Defaults depend on *option*.
+    boundary_water_level_correction : float, optional
+        Uniform offset (metres) added to flow boundary water levels.
+        Defaults to 0.
+    option : str, optional
+        Nesting option: ``"flow"`` or ``"wave"``.
+    bc_path : str, optional
+        If provided, write boundary conditions to disk.
+    **kwargs : Any
+        Extra keyword arguments are silently ignored.
+
+    Returns
+    -------
+    None
     """
     if option == "flow":
         if not output_file:
             output_file = "flow_his.nc"
 
         point_names = [
-            detail.name + "_" + point.name for point in detail.flow_boundary_point
+            f"{detail.name}_{point.name}" for point in detail.flow_boundary_point
         ]
 
         bzs = overall.read_timeseries_output(
@@ -73,7 +89,7 @@ def nest2_beware_in_delft3dfm(
         all_stations = [str(st.strip())[2:-1] for st in stations]
 
         point_names = [
-            detail.name + "_" + point.name for point in detail.wave_boundary_point
+            f"{detail.name}_{point.name}" for point in detail.wave_boundary_point
         ]
 
         ddd = xr.load_dataset(file_name)

@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Nest 1 script for nesting Delft3D-FM within Delft3D-FM.
+"""Nest 1 script for nesting Delft3D-FM within Delft3D-FM.
 
 Adds observation points to the overall Delft3D-FM model at the boundary point
 locations of the detail Delft3D-FM model.

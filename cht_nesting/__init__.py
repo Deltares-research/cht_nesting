@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Coastal Hazards Toolkit - Nesting
+"""Coastal Hazards Toolkit - Nesting.
 
 Two-step nesting workflow for coupling coastal hydrodynamic and wave models.
 """

@@ -18,7 +18,7 @@ def nest2_hurrywave_in_hurrywave(
     output_path: Optional[str] = None,
     output_file: Optional[str] = None,
     bc_path: Optional[str] = None,
-    **kwargs,
+    **kwargs: Any,
 ) -> None:
     """Nest a HurrywaveModel within another HurrywaveModel.
 

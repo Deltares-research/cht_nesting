@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Nest 2 script for nesting a hydromt_sfincs SfincsModel within another SfincsModel.
 

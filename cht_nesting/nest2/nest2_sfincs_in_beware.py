@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Sep  3 13:40:56 2021
+"""Nest 2 script for nesting a SFINCS model within a BEWARE model.
 
-This module defines the nest2_sfincs_in_beware function for handling nesting of SFINCS models within BEWARE models.
+Reads water level (flow) or infragravity wave forcing (wave) from BEWARE output
+and sets them as boundary conditions on the detail SFINCS model.
 """
 
 import datetime
@@ -24,20 +23,38 @@ def nest2_sfincs_in_beware(
     boundary_water_level_correction: float = 0,
     option: Optional[str] = None,
     bc_path: Optional[str] = None,
-    **kwargs,
+    **kwargs: Any,
 ) -> None:
-    """
-    Nest a SFINCS model within a BEWARE model.
+    """Nest a SFINCS model within a BEWARE model.
 
-    Parameters:
-    overall (Any): The overall BEWARE model.
-    detail (Any): The detailed SFINCS model.
-    output_path (Optional[str]): The path to the output files. Default is None.
-    output_file (Optional[str]): The name of the output file. Default is None.
-    boundary_water_level_correction (float): The correction to apply to the boundary water levels. Default is 0.
-    option (Optional[str]): The option for nesting ("flow" or "wave"). Default is None.
-    bc_path (Optional[str]): The path to the boundary conditions files. Default is None.
-    **kwargs: Additional keyword arguments.
+    Finds BEWARE offshore (flow) or coastal (wave) output locations inside
+    the detail model's bounding box, extracts the relevant time series, and
+    sets them as boundary conditions on the SFINCS model.
+
+    Parameters
+    ----------
+    overall : BEWARE
+        The coarse BEWARE model.  Must expose ``path`` and ``crs``.
+    detail : SFINCS
+        The fine SFINCS model that receives boundary conditions.
+    output_path : str, optional
+        Directory containing the BEWARE output files.
+        Defaults to ``overall.path``.
+    output_file : str, optional
+        Name of the BEWARE output file.  Defaults to ``"beware_his.nc"``.
+    boundary_water_level_correction : float, optional
+        Uniform offset (metres) added to flow boundary water levels.
+        Defaults to ``0``.
+    option : str, optional
+        Nesting option: ``"flow"`` or ``"wave"``.
+    bc_path : str, optional
+        If provided, write boundary conditions to disk.
+    **kwargs : Any
+        Extra keyword arguments are silently ignored.
+
+    Returns
+    -------
+    None
     """
     if not output_file:
         output_file = "beware_his.nc"

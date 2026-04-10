@@ -23,7 +23,7 @@ def nest2_xbeach_in_hurrywave(
     option: Optional[str] = None,
     return_maximum: bool = False,
     bc_path: Optional[str] = None,
-    **kwargs,
+    **kwargs: Any,
 ) -> Any:
     """Nest an XBeach model within a HurrywaveModel.
 
@@ -62,7 +62,7 @@ def nest2_xbeach_in_hurrywave(
         point_names = []
         if detail.wave_boundary_point:
             for point in detail.wave_boundary_point:
-                point_names.append(detail.name + "_" + point.name)
+                point_names.append(f"{detail.name}_{point.name}")
         else:
             point_names = all_stations.copy()
 
@@ -100,7 +100,7 @@ def nest2_xbeach_in_hurrywave(
         point_names = []
         if detail.wave_boundary_point:
             for point in detail.wave_boundary_point:
-                point_names.append(detail.name + "_" + point.name)
+                point_names.append(f"{detail.name}_{point.name}")
         else:
             point_names = all_stations.copy()
 

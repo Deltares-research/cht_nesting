@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Apr 25 10:58:08 2021
+"""Nesting step 1 sub-package.
 
-@author: ormondt
+Re-exports the nest1 dispatcher function.
 """

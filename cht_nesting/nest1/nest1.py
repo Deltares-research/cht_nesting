@@ -1,82 +1,123 @@
-# -*- coding: utf-8 -*-
+"""Nesting step 1 dispatcher.
+
+Adds observation points to the overall model at the boundary point locations
+of the detail model, so that the overall model writes output at those positions
+for use in nesting step 2.
 """
-Nesting step 1 script
 
-Adds observation points in overall model at boundary points of detail model
-
-"""
-
-from .nest1_beware_in_delft3dfm import nest1_beware_in_delft3dfm
-from .nest1_beware_in_hurrywave import nest1_beware_in_hurrywave
-from .nest1_beware_in_sfincs import nest1_beware_in_sfincs
-from .nest1_delft3dfm_in_delft3dfm import nest1_delft3dfm_in_delft3dfm
-from .nest1_hurrywave_in_hurrywave import nest1_hurrywave_in_hurrywave
-from .nest1_sfincs_in_delft3dfm import nest1_sfincs_in_delft3dfm
-from .nest1_sfincs_in_hurrywave import nest1_sfincs_in_hurrywave
-from .nest1_sfincs_in_sfincs import nest1_sfincs_in_sfincs
-from .nest1_xbeach_in_hurrywave import nest1_xbeach_in_hurrywave
-from .nest1_xbeach_in_sfincs import nest1_xbeach_in_sfincs
-from .nest1_xbeach_in_delft3dfm import nest1_xbeach_in_delft3dfm
+from typing import Any, Optional
 
 
-def nest1(overall, detail, option=None, obs_point_prefix=None):
-    
-    # Returns a list with observation point objects
+def nest1(
+    overall: Any,
+    detail: Any,
+    option: Optional[str] = None,
+    obs_point_prefix: Optional[str] = None,
+) -> bool:
+    """Add observation points to the overall model at detail model boundary locations.
 
-    # Check if detail model has attribute name
+    The correct sub-function is selected automatically based on the class names of
+    *overall* and *detail*.
+
+    Parameters
+    ----------
+    overall : Any
+        The coarse model that receives the new observation points.
+    detail : Any
+        The fine model whose boundary points are used as observation point
+        locations.
+    option : str, optional
+        Reserved for future use; currently unused.
+    obs_point_prefix : str, optional
+        Prefix for observation point names.
+
+    Returns
+    -------
+    bool
+        ``True`` if observation points were added successfully, ``False`` if the
+        overall/detail model combination is not supported.
+    """
+    # Resolve observation point prefix.
     if obs_point_prefix is None:
         if not hasattr(detail, "name"):
             detail.name = "nest"
     else:
-        detail.name = obs_point_prefix       
+        detail.name = obs_point_prefix
 
-    # Get the types of overall and detail classes
-    overall_type = overall.__class__.__name__.lower()
-    detail_type = detail.__class__.__name__.lower()
+    overall_type: str = _resolve_type(overall)
+    detail_type: str = _resolve_type(detail)
+
+    nest1_fcn = None
 
     if overall_type == "delft3dfm":
         if detail_type == "delft3dfm":
-            nest1_delft3dfm_in_delft3dfm(overall, detail)
+            from .nest1_delft3dfm_in_delft3dfm import nest1_delft3dfm_in_delft3dfm
+
+            nest1_fcn = nest1_delft3dfm_in_delft3dfm
         elif detail_type == "sfincs":
-            nest1_sfincs_in_delft3dfm(overall, detail)
+            from .nest1_sfincs_in_delft3dfm import nest1_sfincs_in_delft3dfm
+
+            nest1_fcn = nest1_sfincs_in_delft3dfm
         elif detail_type == "beware":
-            nest1_beware_in_delft3dfm(overall, detail)
+            from .nest1_beware_in_delft3dfm import nest1_beware_in_delft3dfm
+
+            nest1_fcn = nest1_beware_in_delft3dfm
         elif detail_type == "xbeach":
-            nest1_xbeach_in_delft3dfm(overall, detail)
-        else:
-            print("Nesting step 1 not implemented for this combination of models")
-            return False
-            
+            from .nest1_xbeach_in_delft3dfm import nest1_xbeach_in_delft3dfm
+
+            nest1_fcn = nest1_xbeach_in_delft3dfm
+
     elif overall_type == "sfincs":
         if detail_type == "sfincs":
-            nest1_sfincs_in_sfincs(overall, detail)
+            from .nest1_sfincs_in_sfincs import nest1_sfincs_in_sfincs
+
+            nest1_fcn = nest1_sfincs_in_sfincs
         elif detail_type == "xbeach":
-            nest1_xbeach_in_sfincs(overall, detail)
+            from .nest1_xbeach_in_sfincs import nest1_xbeach_in_sfincs
+
+            nest1_fcn = nest1_xbeach_in_sfincs
         elif detail_type == "beware":
-            nest1_beware_in_sfincs(overall, detail)
-        else:
-            print("Nesting step 1 not implemented for this combination of models")
-            return False
+            from .nest1_beware_in_sfincs import nest1_beware_in_sfincs
+
+            nest1_fcn = nest1_beware_in_sfincs
 
     elif overall_type == "hurrywave":
         if detail_type == "hurrywave":
-            nest1_hurrywave_in_hurrywave(overall, detail)
-        elif detail_type == "xbeach":    
-            nest1_xbeach_in_hurrywave(overall, detail)
-        elif detail_type == "sfincs":    
-            nest1_sfincs_in_hurrywave(overall, detail)
+            from .nest1_hurrywave_in_hurrywave import nest1_hurrywave_in_hurrywave
+
+            nest1_fcn = nest1_hurrywave_in_hurrywave
+        elif detail_type == "xbeach":
+            from .nest1_xbeach_in_hurrywave import nest1_xbeach_in_hurrywave
+
+            nest1_fcn = nest1_xbeach_in_hurrywave
+        elif detail_type == "sfincs":
+            from .nest1_sfincs_in_hurrywave import nest1_sfincs_in_hurrywave
+
+            nest1_fcn = nest1_sfincs_in_hurrywave
         elif detail_type == "beware":
-            nest1_beware_in_hurrywave(overall, detail)
-        else:
-            print("Nesting step 1 not implemented for this combination of models")
-            return False
+            from .nest1_beware_in_hurrywave import nest1_beware_in_hurrywave
+
+            nest1_fcn = nest1_beware_in_hurrywave
 
     elif overall_type == "beware":
         if detail_type == "sfincs":
-            # No need to do anything here. BEWARE output points are fixed
-            pass
-        else:
-            print("Nesting step 1 not implemented for this combination of models")
-            return False
+            # BEWARE output points are fixed; nothing to add.
+            return True
 
-    return True    
+    if nest1_fcn is None:
+        print("Nesting step 1 not implemented for this combination of models")
+        return False
+
+    nest1_fcn(overall, detail)
+    return True
+
+
+def _resolve_type(model: Any) -> str:
+    """Map a model class name to a nesting type string."""
+    class_name = model.__class__.__name__
+    if class_name == "SfincsModel":
+        return "sfincs"
+    elif class_name == "HurrywaveModel":
+        return "hurrywave"
+    else:
+        return class_name.lower()

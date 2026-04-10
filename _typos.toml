@@ -1,0 +1,10 @@
+[default.extend-words]
+cht = "cht"
+ist = "ist"
+ireq = "ireq"
+
+[files]
+extend-exclude = [
+    "*.js",
+    "*.css",
+]

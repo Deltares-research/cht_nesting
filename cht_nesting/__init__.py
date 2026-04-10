@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Apr 25 10:58:08 2021
+"""Coastal Hazards Toolkit - Nesting.
 
-@author: ormondt
+Two-step nesting workflow for coupling coastal hydrodynamic and wave models.
 """
 
-from .nest1.nest1 import nest1
-from .nest2.nest2 import nest2
+from .nest1.nest1 import nest1 as nest1
+from .nest2.nest2 import nest2 as nest2
+
+__version__ = "1.0.0"

@@ -1,53 +1,57 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Sep  3 13:40:56 2021
+"""Nest 2 script for nesting BEWARE within hydromt_hurrywave HurrywaveModel.
 
-This module defines the nest2_beware_in_hurrywave function for handling nesting of BEWARE models within HurryWave models.
+Reads wave parameter time series from the HurrywaveModel's hurrywave_his.nc output
+and sets them as wave boundary conditions on the detail BEWARE model.
 """
 
 import os
-import xarray as xr
+from typing import Any, Optional
+
 import pandas as pd
-from typing import Optional, Any
+import xarray as xr
 
-def nest2_beware_in_hurrywave(overall: Any,
-                              detail: Any,
-                              output_path: Optional[str] = None,
-                              output_file: Optional[str] = None,
-                              bc_path: Optional[str] = None,
-                              **kwargs) -> None:
-    """
-    Nest a BEWARE model within a HurryWave model.
 
-    Parameters:
-    overall (Any): The overall HurryWave model.
-    detail (Any): The detailed BEWARE model.
-    output_path (Optional[str]): The path to the output files. Default is None.
-    output_file (Optional[str]): The name of the output file. Default is None.
-    bc_path (Optional[str]): The path to the boundary conditions files. Default is None.
-    **kwargs: Additional keyword arguments.
+def nest2_beware_in_hurrywave(
+    overall: Any,
+    detail: Any,
+    output_path: Optional[str] = None,
+    output_file: Optional[str] = None,
+    bc_path: Optional[str] = None,
+    **kwargs: Any,
+) -> None:
+    """Nest a BEWARE model within a HurrywaveModel.
+
+    Parameters
+    ----------
+    overall : hydromt_hurrywave.HurrywaveModel
+        The coarse HurrywaveModel whose his output is read.
+    detail : BEWARE
+        The fine BEWARE model that receives wave boundary conditions.
+    output_path : str, optional
+        Directory containing the HurrywaveModel output files.
+    output_file : str, optional
+        Name of the his output file. Defaults to "hurrywave_his.nc".
+    bc_path : str, optional
+        If provided, write boundary conditions to disk.
     """
     if not output_path:
-        # Path of the overall output time series
-        output_path = overall.path
+        output_path = str(overall.root.path)
     if not output_file:
         output_file = "hurrywave_his.nc"
-        
+
     file_name = os.path.join(output_path, output_file)
 
-    # Open netcdf file
     ddd = xr.open_dataset(file_name)
     stations = ddd.station_name.values
     all_stations = [str(st.strip())[2:-1] for st in stations]
 
     point_names = []
     if detail.wave_boundary_point:
-        # Find required boundary points        
         for point in detail.wave_boundary_point:
-            point_names.append(detail.name + "_" + point.name)                    
+            point_names.append(f"{detail.name}_{point.name}")
     else:
         point_names = all_stations.copy()
-        
+
     times = ddd.point_hm0.coords["time"].values
 
     ireq = []

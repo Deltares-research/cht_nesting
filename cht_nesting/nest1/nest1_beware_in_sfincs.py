@@ -1,20 +1,32 @@
-# -*- coding: utf-8 -*-
+"""Nest 1 script for nesting BEWARE within hydromt_sfincs SfincsModel.
+
+Adds observation points to the overall SfincsModel at the flow boundary point
+locations of the detail BEWARE model.
 """
-Nest 1 script for nesting BEWARE in SFINCS
-"""
+
+from typing import Any
 
 from pyproj import Transformer
 
 
-def nest1_beware_in_sfincs(overall, detail):
-        
-    transformer = Transformer.from_crs(detail.crs,
-                                       overall.crs,
-                                       always_xy=True)
-    
-    for ind, point in enumerate(detail.flow_boundary_point):
+def nest1_beware_in_sfincs(overall: Any, detail: Any) -> None:
+    """Add observation points to the overall SfincsModel at BEWARE flow boundary locations.
 
-        name = detail.name + "_" + point.name
-        x, y = transformer.transform(point.geometry.x,
-                                     point.geometry.y)
+    Parameters
+    ----------
+    overall : hydromt_sfincs.SfincsModel
+        The coarse SfincsModel that receives the new observation points.
+    detail : BEWARE
+        The fine BEWARE model whose flow boundary points are used.
+    """
+    if overall.config.get("qtrfile") is not None:
+        overall_crs = overall.quadtree_grid.crs
+    else:
+        overall_crs = overall.grid.crs
+
+    transformer = Transformer.from_crs(detail.crs, overall_crs, always_xy=True)
+
+    for ind, point in enumerate(detail.flow_boundary_point):
+        name = f"{detail.name}_{point.name}"
+        x, y = transformer.transform(point.geometry.x, point.geometry.y)
         overall.observation_points.add_point(x, y, name)

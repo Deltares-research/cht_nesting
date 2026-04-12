@@ -52,20 +52,20 @@ def _assert_wl_timeseries_set(
 ) -> None:
     """Assert that water level timeseries (variable ``bzs``) have been set."""
     data = detail_model.water_level.data
-    assert (
-        data is not None
-    ), "water_level.data should not be None after set_timeseries()"
-    assert (
-        "bzs" in data
-    ), f"Expected variable 'bzs' in water_level.data; got {list(data)}"
+    assert data is not None, (
+        "water_level.data should not be None after set_timeseries()"
+    )
+    assert "bzs" in data, (
+        f"Expected variable 'bzs' in water_level.data; got {list(data)}"
+    )
     shape = data["bzs"].shape  # (time, index)
     assert shape == (
         n_times,
         n_points,
     ), f"Expected shape ({n_times}, {n_points}), got {shape}"
-    assert isinstance(
-        data.indexes["time"], pd.DatetimeIndex
-    ), "time coordinate must be a DatetimeIndex"
+    assert isinstance(data.indexes["time"], pd.DatetimeIndex), (
+        "time coordinate must be a DatetimeIndex"
+    )
 
 
 def _assert_sw_timeseries_set(
@@ -73,13 +73,13 @@ def _assert_sw_timeseries_set(
 ) -> None:
     """Assert that SnapWave timeseries (variables hs/tp/wd/ds) have been set."""
     data = detail_model.snapwave_boundary_conditions.data
-    assert (
-        data is not None
-    ), "snapwave_boundary_conditions.data should not be None after set_timeseries()"
+    assert data is not None, (
+        "snapwave_boundary_conditions.data should not be None after set_timeseries()"
+    )
     for var in ("hs", "tp", "wd", "ds"):
-        assert (
-            var in data
-        ), f"Expected variable '{var}' in snapwave_boundary_conditions.data"
+        assert var in data, (
+            f"Expected variable '{var}' in snapwave_boundary_conditions.data"
+        )
     shape = data["hs"].shape  # (time, index)
     assert shape == (
         n_times,
@@ -145,9 +145,9 @@ class TestNest2SfincsInSfincs:
             output_path=str(sfincs_his_path.parent),
             return_maximum=True,
         )
-        assert isinstance(
-            result, pd.Series
-        ), "return_maximum=True should return pd.Series"
+        assert isinstance(result, pd.Series), (
+            "return_maximum=True should return pd.Series"
+        )
         assert len(result) == N_TIMES
 
     def test_filter_incoming(

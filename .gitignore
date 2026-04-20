@@ -1,5 +1,7 @@
-__pycache__
+__pycache__/
 launch.json
 _build
 dist
 /cht_nesting.egg-info
+/__pycache__/
+.mypy_cache/

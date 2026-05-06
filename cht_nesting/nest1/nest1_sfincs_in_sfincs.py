@@ -6,6 +6,8 @@ point locations of the detail SfincsModel.
 
 from typing import Any
 
+import geopandas as gpd
+import numpy as np
 from pyproj import Transformer
 
 
@@ -56,14 +58,32 @@ def nest1_sfincs_in_sfincs(overall: Any, detail: Any) -> None:
     overall_names = overall.observation_points.list_names
     boundary_gdf = detail.water_level.gdf
 
-    for ind, row in boundary_gdf.iterrows():
-        name = f"{detail.name}_{str(ind + 1).zfill(4)}"
-        if name in overall_names:
-            print(f"Observation point {name} already exists in the model")
-            continue
-        x = row["geometry"].coords[0][0]
-        y = row["geometry"].coords[0][1]
-        x, y = transformer.transform(x, y)
-        if x < 0 and overall_degrees_west:
-            x += 360.0
-        overall.observation_points.add_point(x, y, name)
+    # Extract coordinates and transform them in a vectorised manner for efficiency.
+    coords = np.array([geom.coords[0] for geom in boundary_gdf.geometry.values])
+    xs, ys = coords[:, 0], coords[:, 1]
+
+    # Transform all points at once
+    xs_t, ys_t = transformer.transform(xs, ys)
+
+    # Apply 0–360 correction vectorised
+    if overall_degrees_west:
+        xs_t = np.where(xs_t < 0, xs_t + 360.0, xs_t)
+
+    # Create names vectorised
+    names = [f"{detail.name}_{i+1:04d}" for i in range(len(xs))]
+
+    # Build GeoDataFrame in one shot
+    gdf = gpd.GeoDataFrame(
+        {"name": names},
+        geometry=gpd.points_from_xy(xs_t, ys_t),
+        crs=overall_crs,
+    )
+
+    # Filter existing
+    gdf = gdf[~gdf["name"].isin(overall_names)]
+
+    if not gdf.empty:
+        try:
+            overall.observation_points.set(gdf, merge=True, skip_validation=True)
+        except Exception as e:
+            print(f"Error adding nesting points batch: {e}")

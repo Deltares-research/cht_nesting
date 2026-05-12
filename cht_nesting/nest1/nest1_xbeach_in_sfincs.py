@@ -6,6 +6,7 @@ locations of the detail XBeach model.
 
 from typing import Any
 
+import geopandas as gpd
 from pyproj import Transformer
 
 
@@ -26,7 +27,16 @@ def nest1_xbeach_in_sfincs(overall: Any, detail: Any) -> None:
 
     transformer = Transformer.from_crs(detail.crs, overall_crs, always_xy=True)
 
-    for ind, point in enumerate(detail.flow_boundary_point):
-        name = f"{detail.name}_{str(ind + 1).zfill(4)}"
-        x, y = transformer.transform(point.geometry.x, point.geometry.y)
-        overall.observation_points.add_point(x, y, name)
+    xs = [p.geometry.x for p in detail.flow_boundary_point]
+    ys = [p.geometry.y for p in detail.flow_boundary_point]
+    names = [f"{detail.name}_{i+1:04d}" for i in range(len(xs))]
+
+    xs, ys = transformer.transform(xs, ys)
+
+    gdf = gpd.GeoDataFrame(
+        {"name": names},
+        geometry=gpd.points_from_xy(xs, ys),
+        crs=overall_crs,
+    )
+
+    overall.observation_points.set(gdf, merge=True, skip_validation=True)

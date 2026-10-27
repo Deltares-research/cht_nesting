@@ -19,7 +19,7 @@ def nest2_hurrywave_in_hurrywave(
     output_file: Optional[str] = None,
     bc_path: Optional[str] = None,
     **kwargs: Any,
-) -> None:
+) -> Optional[bool]:
     """Nest a HurrywaveModel within another HurrywaveModel.
 
     Parameters
@@ -36,6 +36,12 @@ def nest2_hurrywave_in_hurrywave(
         Name of the spectral output file. Defaults to "hurrywave_sp2.nc".
     bc_path : str, optional
         If provided, write boundary conditions to disk.
+
+    Returns
+    -------
+    bool or None
+        ``False`` if the detail model has no boundary points (nothing was
+        set or written), otherwise ``None``.
     """
     if not output_path:
         output_path = str(overall.root.path)
@@ -53,7 +59,7 @@ def nest2_hurrywave_in_hurrywave(
 
     if len(bnd_gdf) == 0:
         print("Warning: no boundary points found in detail model")
-        return
+        return False
 
     # Open the overall spectral output
     ddd = xr.open_dataset(file_name)

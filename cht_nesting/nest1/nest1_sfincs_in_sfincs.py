@@ -70,7 +70,7 @@ def nest1_sfincs_in_sfincs(overall: Any, detail: Any) -> None:
         xs_t = np.where(xs_t < 0, xs_t + 360.0, xs_t)
 
     # Create names vectorised
-    names = [f"{detail.name}_{i+1:04d}" for i in range(len(xs))]
+    names = [f"{detail.name}_{i + 1:04d}" for i in range(len(xs))]
 
     # Build GeoDataFrame in one shot
     gdf = gpd.GeoDataFrame(

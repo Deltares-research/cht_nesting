@@ -29,7 +29,7 @@ def nest1_xbeach_in_sfincs(overall: Any, detail: Any) -> None:
 
     xs = [p.geometry.x for p in detail.flow_boundary_point]
     ys = [p.geometry.y for p in detail.flow_boundary_point]
-    names = [f"{detail.name}_{i+1:04d}" for i in range(len(xs))]
+    names = [f"{detail.name}_{i + 1:04d}" for i in range(len(xs))]
 
     xs, ys = transformer.transform(xs, ys)
 
